@@ -36,6 +36,7 @@ function FEM(initpos, tri){
 	this.ff = [];
 	this.ud = [];
 	this.maxPStress = [];
+	this.fixNode = []; // 固定ノードリスト: パブリックアクセスで外部から設定する
     // 破壊に関するメンバ変数
     this.removedFlag = new Array(this.tri.length);
     for(var i=0; i<this.tri.length; i++)
@@ -173,6 +174,13 @@ FEM.prototype.setBoudary = function(clickState, mousePos, gravityFlag){
 	var u = numeric.linspace(0,0,2*this.posNum);
 	var f = numeric.linspace(0,0,2*this.posNum);
 
+	// 固定ノードの境界条件
+	for(var i=0; i<this.fixNode.length; i++) {
+		var nd=this.fixNode[i];
+		u[2*nd] = this.pos[nd][0]-this.initpos[nd][0];
+		u[2*nd+1]=this.pos[nd][1]-this.initpos[nd][1];
+		nodeToDF[nd]="d";
+	}
 	
 	// 上面のノードを固定
 	for(var i=0; i<this.pos.length; i++){
@@ -180,7 +188,7 @@ FEM.prototype.setBoudary = function(clickState, mousePos, gravityFlag){
 			u[2*i] = 0;
 			u[2*i+1] = 0;
 			nodeToDF[i] = "d";
-		}else{
+		}else if(nodeToDF[i]!="d"){
 			f[2*i] = 0;
 			if(gravityFlag)
 				f[2*i+1] = - 9.8 * this.mass[i] *1000;

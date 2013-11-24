@@ -26,6 +26,7 @@ $(document).ready(function () {
     // アウトライン作成用変数
     var outline = new Outline();
     var minlen = 50;
+    var minlenfix = 5;
 	var cv = new ClosedCurve(minlen);
     var drawingFlag = true;    // 書き終わった後にクリックしなおしてから次の描画を始めるためのフラグ
 
@@ -70,8 +71,9 @@ $(document).ready(function () {
 					dh=imgSc*canvasHeight;
 				}
 				// 画像以外の変数の初期化
-				state = "drawOutLine";
-				outline = new Outline();
+				state="drawOutLine";
+				cv=new ClosedCurve(minlen);
+				outline=new Outline();
 				mainloop();
 			}
 			// 画像のURLをソースに設定
@@ -140,6 +142,9 @@ $(document).ready(function () {
         case "generateMesh":
             generateMeshFunc();
             break;
+    	case "fix":
+    		fixFunc();
+	    	break;
         case "physics":
             physicsFunc();
             break;
@@ -222,7 +227,7 @@ $(document).ready(function () {
 	//////  メッシュ生成処理
 	//////////////////////////////////////////////////////
 	function generateMeshFunc() {
-		// メッシュ生成が完了している場合の処理
+		// 描画
 		if (!mesh.addPoint()) {
 			context.setTransform(1, 0, 0, 1, 0, 0);
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -235,15 +240,108 @@ $(document).ready(function () {
 			}
 			return;
 		}
-		// メッシュ生成が完了していない場合の処理
-		while(mesh.addPoint()) {
-			;
-        };
-		mesh.meshGen();
-		for(var i=0; i<20; i++)
-			mesh.laplacianSmoothing();
 	}
 
+	//////////////////////////////////////////////////////////
+	//////  固定領域選択の処理
+	//////////////////////////////////////////////////////
+	function fixFunc() {
+		switch (clickState) {
+			case "Down":
+				if (drawingFlag) {
+					cv.addPoint(mousePos[0]);
+					// 閉曲線が完成したときの処理
+					if (cv.closedFlag) {
+						// 固定ノードを追加
+						for(var i=0; i<physicsModel.pos.length; i++) {
+							if(cv.pointInOrOut(physicsModel.pos[i]))
+								physicsModel.fixNode.push(i);
+						}
+						// 作業用の閉曲線インスタンスを初期化
+						cv = new ClosedCurve(minlenfix);
+						drawingFlag = false;
+					}
+				}
+				break;
+			case "Up":
+				drawingFlag = true;
+				break;
+		}
+		// 描画処理
+		// 画面をリセット
+		context.setTransform(1, 0, 0, 1, 0, 0);
+		context.clearRect(0, 0, canvasWidth, canvasHeight);
+
+		// メッシュの描画
+		// 三角形の描画
+		var color='rgb(0,0,0)';
+		context.strokeStyle=color;
+		color='rgb(220,30,30)';
+		context.fillStyle=color;
+		for(var i=0; i<physicsModel.tri.length; i++) {
+			if(physicsModel.removedFlag[i]) continue;
+			context.save();
+
+			// 三角形でクリップ
+			var tri=[physicsModel.tri[i][0], physicsModel.tri[i][1], physicsModel.tri[i][2]];
+			drawTriClip(physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
+			context.clip();
+
+			var tri1=[
+				[physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1], ],
+				[physicsModel.initpos[tri[1]][0], physicsModel.initpos[tri[1]][1], ],
+				[physicsModel.initpos[tri[2]][0], physicsModel.initpos[tri[2]][1], ],
+			];
+			var tri2=[
+				[physicsModel.pos[tri[0]][0], physicsModel.pos[tri[0]][1], ],
+				[physicsModel.pos[tri[1]][0], physicsModel.pos[tri[1]][1], ],
+				[physicsModel.pos[tri[2]][0], physicsModel.pos[tri[2]][1], ],
+			];
+
+			// 画像の基準座標系に変換
+			context.setTransform(1, 0, 0, 1, 0, 0);
+			// 三角形基準座標系に並進変換
+			context.transform(1, 0, 0, 1, physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1]);
+			// 変形に伴うアフィン変換
+			var aff=getAffineMat(tri1, tri2);
+			context.transform(aff[0], aff[1], aff[2], aff[3], aff[4], aff[5]);
+			// 画像の基準座標系に並進変換
+			context.transform(1, 0, 0, 1, -physicsModel.initpos[tri[0]][0], -physicsModel.initpos[tri[0]][1]);
+			// 画像の描画
+			context.drawImage(img, dx, dy, dw, dh);
+
+			context.restore();
+
+            var color = "rgb(255,100,100)";
+   			context.fillStyle = color; 
+			context.strokeStyle = 'rgb(0, 0, 0)'; 
+			drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+		}
+
+		// 固定点の描画
+		var color='rgb(100, 100, 100)';
+		context.strokeStyle=color;
+		context.fillStyle=color;
+		for(var i=0; i<physicsModel.pos.length; i++) 
+			drawCircle(physicsModel.pos[i], 3);
+
+		// 固定点の描画
+		var color='rgb(200, 0, 0)';
+		context.strokeStyle=color;
+		context.fillStyle=color;
+		for(var i=0; i<physicsModel.fixNode.length; i++) {
+			var n=physicsModel.fixNode[i];
+			drawCircle(physicsModel.pos[n], 3);
+		}
+
+
+		// 作成中の曲線の描画
+		context.fillStyle = 'rgb(0, 0, 0)'; // 黒
+		context.strokeStyle = 'rgb(0, 0, 0)'; // 黒
+		for (var i = 0; i < cv.lines.length; i++) 
+			drawLine(cv.lines[i].start, cv.lines[i].end);
+
+	}
 	//////////////////////////////////////////////////////////
 	//////  変形計算の処理
 	//////////////////////////////////////////////////////
@@ -333,14 +431,47 @@ $(document).ready(function () {
     // メッシュボタン
 	$("#meshButton").click(function () {
 	    if(outline.closedCurves.length>0) {
-	        mesh=new DelaunayGen(outline, minlen);
+	    	mesh=new DelaunayGen(outline, minlen);
+
+	    	if(outline.closedCurves.length==0) {
+	    		cv.addPoint([dx, dy]);
+	    		cv.addPoint([dx, dy+dh]);
+	    		cv.addPoint([dx+dw, dy+dh]);
+	    		cv.addPoint([dx+dw, dy]);
+	    		cv.addPoint([dx, dy]);
+	    		outline.addClosedLine(cv);
+
+			}
+
+	        while(mesh.addPoint()) {
+	        	;
+	        };
+	        mesh.meshGen();
+	        for(var i=0; i<20; i++)
+	        	mesh.laplacianSmoothing();
+
+			// 物理モデルの初期化をメッシュ完成直後に行う
+	        physicsModel=new FEM(mesh.dPos, mesh.tri);
+
 	        state="generateMesh";
 	    }
 	});
 
+	// 固定領域選択ボタン
+	$("#fixButton").click(function () {
+		cv=new ClosedCurve(minlenfix);
+		outline=new Outline();
+		state="fix";
+	});
+
+	// 固定解除ボタン
+	$("#freeButton").click(function () {
+		physicsModel.fixNode=[];
+	});
+
+
     // 変形計算ボタン
 	$("#physicsButton").click(function () {
-        physicsModel = new FEM(mesh.dPos, mesh.tri);
         state = "physics";
 	});
 
