@@ -161,6 +161,57 @@ ClosedCurve.prototype.intersect = function (cv) {
     }
     return false;
 }
+
+
+// 点の内外判定
+// 点がclosed curveの内側 ture, 外側 false
+ClosedCurve.prototype.pointInOrOut=function (p) {
+
+	if(p.length==0) return flase;
+
+	// +x方向へレイを出す
+	var countxp=0;
+	var ZERO=1e-10;
+	for(var j=0; j<this.lines.length; j++) {
+
+		// pを通りx軸に平行な直線に交わるかどうか
+		var dys=this.lines[j].start[1]-p[1];
+		var dye=this.lines[j].end[1]-p[1];
+		if(Math.abs(dys)<ZERO) dys=0;
+		if(Math.abs(dye)<ZERO) dye=0;
+		if(dys*dye>0) continue;
+		// 線分がx軸に平行な場合は除外
+		if(Math.abs(this.lines[j].a)<ZERO) continue;
+		// pを通り+x方向に出したレイが線分と交わるかどうか
+		var interx=this.lines[j].crossXpos(p[1]);
+		if(interx<p[0]) continue;
+		// 交点が線分のend側だった場合、交わっていないとみなす
+		if(
+            Math.abs(interx-this.lines[j].end[0])<ZERO
+            &&
+            Math.abs(p[1]-this.lines[j].end[1])<ZERO
+            ) {
+			continue;
+		}
+		// 交点が線分のstart側だが接点である場合、交わっていないとみなす
+		if(
+            Math.abs(interx-this.lines[j].start[0])<ZERO
+            &&
+            Math.abs(p[1]-this.lines[j].start[1])<ZERO
+            ) {
+			var thisy=this.lines[j].start[1];
+			var nexty=this.lines[j].end[1];
+			var befline=j-1;
+			if(j==0) befline=this.lines.length-1;
+			var befry=this.lines[befline].start[1];
+			if((nexty-thisy)*(befry-thisy)>=0) {
+				continue;
+			}
+		}
+		++countxp;
+	}
+	return countxp%2==1;
+}
 	
 //////////////////////////////////////////////////
 /////// 輪郭クラス
