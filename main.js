@@ -430,31 +430,31 @@ $(document).ready(function () {
 
     // メッシュボタン
 	$("#meshButton").click(function () {
-	    if(outline.closedCurves.length>0) {
-	    	mesh=new DelaunayGen(outline, minlen);
 
-	    	if(outline.closedCurves.length==0) {
-	    		cv.addPoint([dx, dy]);
-	    		cv.addPoint([dx, dy+dh]);
-	    		cv.addPoint([dx+dw, dy+dh]);
-	    		cv.addPoint([dx+dw, dy]);
-	    		cv.addPoint([dx, dy]);
-	    		outline.addClosedLine(cv);
 
-			}
+	    if(outline.closedCurves.length==0) {
+	    	cv=new ClosedCurve(minlen);
+	    	cv.addPoint([dx, dy]);
+	    	cv.addPoint([dx, dy+dh]);
+	    	cv.addPoint([dx+dw, dy+dh]);
+	    	cv.addPoint([dx+dw, dy]);
+	    	cv.addPoint([dx, dy]);
+	    	outline.addClosedLine(cv);
+		}
 
-	        while(mesh.addPoint()) {
-	        	;
-	        };
-	        mesh.meshGen();
-	        for(var i=0; i<20; i++)
-	        	mesh.laplacianSmoothing();
+	    mesh=new DelaunayGen(outline, minlen);
+	    while(mesh.addPoint()) {
+	        ;
+	    };
+	    mesh.meshGen();
+	    for(var i=0; i<20; i++)
+	        mesh.laplacianSmoothing();
 
-			// 物理モデルの初期化をメッシュ完成直後に行う
-	        physicsModel=new FEM(mesh.dPos, mesh.tri);
+		// 物理モデルの初期化をメッシュ完成直後に行う
+	    physicsModel=new FEM(mesh.dPos, mesh.tri);
 
-	        state="generateMesh";
-	    }
+	    state="generateMesh";
+
 	});
 
 	// 固定領域選択ボタン
