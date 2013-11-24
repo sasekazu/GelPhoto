@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html><head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <title>切り抜き柔軟物</title>
+        <link rel="stylesheet" type="text/css" href="index.css">
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+        <script type="text/javascript" src="numeric-1.2.6.min.js"></script>
+        <script type="text/javascript" src="outline.js"></script>    
+        <script type="text/javascript" src="delaunay.js"></script>    
+        <script type="text/javascript" src="fem.js"></script>    
+        <script type="text/javascript" src="main.js"></script>    
+    </head>
+    <body>
+    	<canvas id="mViewCanvas" width="700" height="600">
+    	</canvas>
+        <div id="uploadArea">
+	    <input id="resetButton" value="リセット" type="button">
+	    <input id="meshButton" value="触る" type="button">
+        <input id="uploadFile" name="image" type="file">
+        </div>
+        <div>
+            <h3>使い方</h3>
+            <p>
+            0. 「参照」から画像ファイルを指定する。（サーバアップロードはされないのでファイルサイズが大きくても大丈夫）<br>
+            1. マウスドラッグで切り抜きたい領域を閉じた曲線で示す。<br>
+            2. 「触る」をクリック。マウスドラッグで触る。<br>
+            </p>
+        </div>
+    
+
+</body></html>
