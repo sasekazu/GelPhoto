@@ -221,18 +221,27 @@ $(document).ready(function () {
 	//////////////////////////////////////////////////////////
 	//////  メッシュ生成処理
 	//////////////////////////////////////////////////////
-	function generateMeshFunc(){
-		
+	function generateMeshFunc() {
+		// メッシュ生成が完了している場合の処理
+		if (!mesh.addPoint()) {
+			context.setTransform(1, 0, 0, 1, 0, 0);
+			context.clearRect(0, 0, canvasWidth, canvasHeight);
+			context.drawImage(img, dx, dy, dw, dh);
+			var color = 'rgb(0,0,0)';
+			context.strokeStyle = color;
+			for (var i = 0; i < mesh.tri.length; i++) {
+				var tri = [mesh.tri[i][0], mesh.tri[i][1], mesh.tri[i][2]];
+				drawTriS(mesh.dPos[tri[0]], mesh.dPos[tri[1]], mesh.dPos[tri[2]]);
+			}
+			return;
+		}
+		// メッシュ生成が完了していない場合の処理
 		while(mesh.addPoint()) {
 			;
         };
 		mesh.meshGen();
-		for(var i=0; i<10; i++)
+		for(var i=0; i<20; i++)
 			mesh.laplacianSmoothing();
-        physicsModel = new FEM(mesh.dPos, mesh.tri);
-		state = "physics";
-		return;
-        
 	}
 
 	//////////////////////////////////////////////////////////
