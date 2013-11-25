@@ -36,6 +36,10 @@ $(document).ready(function () {
     // 変形計算用変数
     var physicsModel;
 
+	// 固定領域選択用変数
+    var clickPosf=[];
+    var dragFlagf=false;
+
 
 	/////////////////////////////////
 	// 画像の読み込み
@@ -248,23 +252,28 @@ $(document).ready(function () {
 	function fixFunc() {
 		switch (clickState) {
 			case "Down":
-				if (drawingFlag) {
-					cv.addPoint(mousePos[0]);
-					// 閉曲線が完成したときの処理
-					if (cv.closedFlag) {
-						// 固定ノードを追加
-						for(var i=0; i<physicsModel.pos.length; i++) {
-							if(cv.pointInOrOut(physicsModel.pos[i]))
-								physicsModel.fixNode.push(i);
-						}
-						// 作業用の閉曲線インスタンスを初期化
-						cv = new ClosedCurve(minlenfix);
-						drawingFlag = false;
-					}
+				if(!dragFlagf) {
+					console.log("down");
+					clickPosf=numeric.clone(mousePos[0]);
 				}
+				dragFlagf=true;
+
+
 				break;
 			case "Up":
-				drawingFlag = true;
+				if(dragFlagf) {
+					console.log("up");
+					var sub1, sub2, dot;
+					for(var i=0; i<physicsModel.pos.length; i++) {
+						sub1=numeric.sub(physicsModel.pos[i], clickPosf);
+						sub2=numeric.sub(physicsModel.pos[i], mousePos[0]);
+						dot=numeric.dot(sub1, sub2);
+						if(dot<=0)
+							physicsModel.fixNode.push(i);
+					}
+					clickPosf=[];
+				}
+				dragFlagf=false;
 				break;
 		}
 		// 描画処理
@@ -335,11 +344,16 @@ $(document).ready(function () {
 		}
 
 
-		// 作成中の曲線の描画
-		context.fillStyle = 'rgb(0, 0, 0)'; // 黒
-		context.strokeStyle = 'rgb(0, 0, 0)'; // 黒
-		for (var i = 0; i < cv.lines.length; i++) 
-			drawLine(cv.lines[i].start, cv.lines[i].end);
+		// 選択領域の描画
+		context.fillStyle = 'rgb(255, 0, 0)'; 
+		context.strokeStyle='rgb(255, 0, 0)'; 
+		if(clickPosf.length!=0) {
+			drawLine(clickPosf, [clickPosf[0], mousePos[0][1]]);
+			drawLine([clickPosf[0], mousePos[0][1]], mousePos[0]);
+			drawLine(mousePos[0], [mousePos[0][0], clickPosf[1]]);
+			drawLine([mousePos[0][0], clickPosf[1]], clickPosf);
+		}
+
 
 	}
 	//////////////////////////////////////////////////////////
