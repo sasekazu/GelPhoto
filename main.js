@@ -26,8 +26,7 @@ $(document).ready(function () {
     // アウトライン作成用変数
     var outline = new Outline();
     var minlen = 40;
-    var minlenfix = 5;
-	var cv = new ClosedCurve(minlen);
+	var cv;
     var drawingFlag = true;    // 書き終わった後にクリックしなおしてから次の描画を始めるためのフラグ
 
     // メッシュ作成用変数
@@ -129,6 +128,8 @@ $(document).ready(function () {
 			dw=imgSc*canvasHeight*img.width/img.height;
 			dh=imgSc*canvasHeight;
 		}
+		cv=new ClosedCurve(minlen);
+		outline=new Outline();
 		mainloop();
 	}
 
@@ -252,17 +253,15 @@ $(document).ready(function () {
 	function fixFunc() {
 		switch (clickState) {
 			case "Down":
-				if(!dragFlagf) {
-					console.log("down");
+				if(!dragFlagf) 
 					clickPosf=numeric.clone(mousePos[0]);
-				}
+				
 				dragFlagf=true;
 
 
 				break;
 			case "Up":
 				if(dragFlagf) {
-					console.log("up");
 					var sub1, sub2, dot;
 					for(var i=0; i<physicsModel.pos.length; i++) {
 						sub1=numeric.sub(physicsModel.pos[i], clickPosf);
@@ -447,7 +446,6 @@ $(document).ready(function () {
     // メッシュボタン
 	$("#meshButton").click(function () {
 
-
 	    if(outline.closedCurves.length==0) {
 	    	cv=new ClosedCurve(minlen);
 	    	cv.addPoint([dx, dy]);
@@ -475,8 +473,6 @@ $(document).ready(function () {
 
 	// 固定領域選択ボタン
 	$("#fixButton").click(function () {
-		cv=new ClosedCurve(minlenfix);
-		outline=new Outline();
 		state="fix";
 	});
 
