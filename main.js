@@ -25,7 +25,7 @@ $(document).ready(function () {
 
     // アウトライン作成用変数
     var outline = new Outline();
-    var minlen = 40;
+    var minlen=40;
 	var cv;
     var drawingFlag = true;    // 書き終わった後にクリックしなおしてから次の描画を始めるためのフラグ
 
@@ -75,6 +75,7 @@ $(document).ready(function () {
 				}
 				// 画像以外の変数の初期化
 				state="drawOutLine";
+				minlen=(dw+dh)*0.04;	// 0.04はマジックナンバー
 				cv=new ClosedCurve(minlen);
 				outline=new Outline();
 				mainloop();
@@ -128,6 +129,7 @@ $(document).ready(function () {
 			dw=imgSc*canvasHeight*img.width/img.height;
 			dh=imgSc*canvasHeight;
 		}
+		minlen=(dw+dh)*0.05;	// 0.05はマジックナンバー
 		cv=new ClosedCurve(minlen);
 		outline=new Outline();
 		mainloop();
@@ -257,7 +259,6 @@ $(document).ready(function () {
 					clickPosf=numeric.clone(mousePos[0]);
 				
 				dragFlagf=true;
-
 
 				break;
 			case "Up":
@@ -418,17 +419,6 @@ $(document).ready(function () {
 			drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 			*/
 		}		
-        
-		// マウスのまる
-		/*
-		var color = 'rgb(255,0,0)';
-		context.fillStyle = color; 
-		context.strokeStyle = color; 
-		for(var i=0; i<mousePos.length; i++)
-			drawCircle(mousePos[i], physicsModel.gripRad);
-			*/
-
-
 
 	}
 		
@@ -466,9 +456,10 @@ $(document).ready(function () {
 
 		// 物理モデルの初期化をメッシュ完成直後に行う
 	    physicsModel=new FEM(mesh.dPos, mesh.tri);
+	    physicsModel.gripRad=minlen;
 
 	    state="generateMesh";
-
+	    console.log("triNum " + physicsModel.tri.length);
 	});
 
 	// 固定領域選択ボタン
