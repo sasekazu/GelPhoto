@@ -61,7 +61,7 @@ $(document).ready(function () {
 		reader.onload=function (evt) {
 			// 画像がloadされた後に、canvasに描画する
 			img.onload=function () {
-				imgSc=0.5;
+				imgSc=0.7;
 				if(img.height<img.width) {
 					dx=0.5*(1-imgSc)*canvasWidth;
 					dy=0.5*(canvasHeight-imgSc*img.height/img.width*canvasWidth);
@@ -75,6 +75,7 @@ $(document).ready(function () {
 				}
 				// 画像以外の変数の初期化
 				state="drawOutLine";
+				console.log("area "+(dw*dh));
 				minlen=(dw+dh)*0.04;	// 0.04はマジックナンバー
 				cv=new ClosedCurve(minlen);
 				outline=new Outline();
@@ -265,10 +266,9 @@ $(document).ready(function () {
 				if(dragFlagf) {
 					var sub1, sub2, dot;
 					for(var i=0; i<physicsModel.pos.length; i++) {
-						sub1=numeric.sub(physicsModel.pos[i], clickPosf);
-						sub2=numeric.sub(physicsModel.pos[i], mousePos[0]);
-						dot=numeric.dot(sub1, sub2);
-						if(dot<=0)
+						sub1=(physicsModel.pos[i][0]-clickPosf[0])*(physicsModel.pos[i][0]-mousePos[0][0]);
+						sub2=(physicsModel.pos[i][1]-clickPosf[1])*(physicsModel.pos[i][1]-mousePos[0][1]);
+						if(sub1<=0 && sub2<=0)
 							physicsModel.fixNode.push(i);
 					}
 					clickPosf=[];
@@ -459,7 +459,8 @@ $(document).ready(function () {
 	    physicsModel.gripRad=minlen;
 
 	    state="generateMesh";
-	    console.log("triNum " + physicsModel.tri.length);
+	    console.log("posNum "+physicsModel.pos.length);
+	    console.log("triNum "+physicsModel.tri.length);
 	});
 
 	// 固定領域選択ボタン
