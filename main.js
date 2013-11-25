@@ -25,7 +25,7 @@ $(document).ready(function () {
 
     // アウトライン作成用変数
     var outline = new Outline();
-    var minlen = 50;
+    var minlen = 40;
     var minlenfix = 5;
 	var cv = new ClosedCurve(minlen);
     var drawingFlag = true;    // 書き終わった後にクリックしなおしてから次の描画を始めるためのフラグ
@@ -58,14 +58,14 @@ $(document).ready(function () {
 		reader.onload=function (evt) {
 			// 画像がloadされた後に、canvasに描画する
 			img.onload=function () {
-				imgSc=0.7;
+				imgSc=0.5;
 				if(img.height<img.width) {
 					dx=0.5*(1-imgSc)*canvasWidth;
-					dy=0.5*(1-imgSc*img.height/img.width)*canvasWidth;
+					dy=0.5*(canvasHeight-imgSc*img.height/img.width*canvasWidth);
 					dw=imgSc*canvasWidth;
 					dh=imgSc*canvasWidth*img.height/img.width;
 				} else {
-					dx=0.5*(1-imgSc*img.width/img.height)*canvasHeight;
+					dx=0.5*(canvasWidth-imgSc*img.width/img.height*canvasHeight);
 					dy=0.5*(1-imgSc)*canvasHeight;
 					dw=imgSc*canvasHeight*img.width/img.height;
 					dh=imgSc*canvasHeight;
@@ -84,9 +84,9 @@ $(document).ready(function () {
 	});
 
 	// 最初の画像を選択
-	var randnum = Math.floor( Math.random() * 100 );
 	img.src = "miku.png?" + new Date().getTime();
 	/*
+	var randnum = Math.floor( Math.random() * 100 );
 	switch(randnum%6){
 		case 0:
 			img.src = "miku.png?" + new Date().getTime();
@@ -113,14 +113,14 @@ $(document).ready(function () {
 
 	// 画像が読み込まれたときに実行
 	img.onload=function () {
-		imgSc=0.7;
+		imgSc=0.48;
 		if(img.height<img.width) {
 			dx=0.5*(1-imgSc)*canvasWidth;
-			dy=0.5*(1-imgSc*img.height/img.width)*canvasWidth;
+			dy=0.5*(canvasHeight-imgSc*img.height/img.width*canvasWidth);
 			dw=imgSc*canvasWidth;
 			dh=imgSc*canvasWidth*img.height/img.width;
 		} else {
-			dx=0.5*(1-imgSc*img.width/img.height)*canvasHeight;
+			dx=0.5*(canvasWidth-imgSc*img.width/img.height*canvasHeight);
 			dy=0.5*(1-imgSc)*canvasHeight;
 			dw=imgSc*canvasHeight*img.width/img.height;
 			dh=imgSc*canvasHeight;
@@ -347,7 +347,9 @@ $(document).ready(function () {
 	//////////////////////////////////////////////////////
 	function physicsFunc() {
 
-		physicsModel.setBoudary(clickState, mousePos, false);		
+		var gravityFlag = $('#gravityCheckBox').is(':checked');
+
+		physicsModel.setBoudary(clickState, mousePos, gravityFlag);		
 		physicsModel.calcDynamicDeformation(0.1);
 
 
