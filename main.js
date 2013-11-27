@@ -413,11 +413,13 @@ $(document).ready(function () {
             
 			context.restore();
 			
+			/*
             var color = "rgb(255,100,100)";
    			context.fillStyle = color; 
 			context.strokeStyle = 'rgb(0, 0, 0)'; 
 			drawTri(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 			drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+			*/
 		}		
 
 	}

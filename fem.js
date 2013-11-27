@@ -14,7 +14,7 @@ function FEM(initpos, tri){
 	this.Be = [];           // 要素 ひずみマトリクス
 	this.De = [];           // 要素 ひずみ-応力変換マトリクス
 	this.Ke = [];           // 要素剛性マトリクス    
-	var young = 500000;       // ヤング率 [Pa]
+	var young = 50;       // ヤング率 [Pa]
 	var poisson = 0.3;      // ポアソン比
 	var density = 0.001;    // 密度 [kg/mm3]
 	var thickness = 1;  // 物体の厚さ [mm]
@@ -482,14 +482,26 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 
 FEM.prototype.modifyPosCld = function(xmin, ymin, xmax, ymax){
 	for(var i=0; i<this.pos.length; i++) {
-		if(this.pos[i][0]<xmin)
+		if(this.pos[i][0]<xmin) {
 			this.pos[i][0]=xmin;
-		if(this.pos[i][0]>xmax)
+			this.Vel[2*i] = 0;
+			this.Vel[2*i+1] = 0;
+		}
+		if(this.pos[i][0]>xmax) {
 			this.pos[i][0]=xmax;
-		if(this.pos[i][1]<ymin)
+			this.Vel[2*i] = 0;
+			this.Vel[2*i+1] = 0;
+		}
+		if(this.pos[i][1]<ymin) {
 			this.pos[i][1]=ymin;
-		if(this.pos[i][1]>ymax)
+			this.Vel[2*i] = 0;
+			this.Vel[2*i+1] = 0;
+		}
+		if(this.pos[i][1]>ymax) {
 			this.pos[i][1]=ymax;
+			this.Vel[2*i] = 0;
+			this.Vel[2*i+1] = 0;
+		}
 	}
 }
 	
