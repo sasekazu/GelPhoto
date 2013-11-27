@@ -89,7 +89,8 @@ $(document).ready(function () {
 	});
 
 	// 最初の画像を選択
-	img.src = "miku.png?" + new Date().getTime();
+	//img.src = "miku.png?" + new Date().getTime();
+	img.src = "donut.jpg?" + new Date().getTime();
 	/*
 	var randnum = Math.floor( Math.random() * 100 );
 	switch(randnum%6){
