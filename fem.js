@@ -404,6 +404,11 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
 			uf[2*i+j] = this.pos[this.flist[i]][j] - this.initpos[this.flist[i]][j];
+
+	var ud = numeric.linspace(0,0,2*d);
+	for(var i=0; i<d; i++)
+		for(var j=0; j<2; j++)
+			ud[2*i+j] = this.pos[this.dlist[i]][j] - this.initpos[this.dlist[i]][j];
 	
 	var fex = numeric.linspace(0,0,2*f);
 	for(var i=0; i<f; i++){
@@ -412,9 +417,10 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	}
 	
 	var vf = numeric.linspace(0,0,2*f);
-	for(var i=0; i<2*f; i++)
+	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
 			vf[2*i+j] = this.Vel[2*this.flist[i]+j];
+	
 	
 	var Kff = numeric.rep([2*f,2*f],0);
 	for(var i=0; i<f; i++)
@@ -476,6 +482,16 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
 			this.Vel[2*this.flist[i]+j]=vf[2*i+j];
+	
+
+	var vd = numeric.linspace(0,0,2*d);
+	for(var i=0; i<d; i++)
+		for(var j=0; j<2; j++)
+			vd[2*i+j] = (ud[2*i+j]-(this.pos[this.dlist[i]][j]-this.initpos[this.dlist[i]][j]))/dt;
+
+	for(var i=0; i<d; i++)
+		for(var j=0; j<2; j++)
+			this.Vel[2*this.dlist[i]+j]=vd[2*i+j];
 	
 	var duf = numeric.mul(dt,vf);
 	uf = numeric.add(uf,duf);
