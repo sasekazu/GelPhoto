@@ -14,7 +14,7 @@ function FEM(initpos, tri){
 	this.Be = [];           // 要素 ひずみマトリクス
 	this.De = [];           // 要素 ひずみ-応力変換マトリクス
 	this.Ke = [];           // 要素剛性マトリクス    
-	var young = 50;       // ヤング率 [Pa]
+	var young = 500000;       // ヤング率 [Pa]
 	var poisson = 0.3;      // ポアソン比
 	var density = 0.001;    // 密度 [kg/mm3]
 	var thickness = 1;  // 物体の厚さ [mm]
@@ -396,7 +396,6 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	// Stiffness Warping法の場合、剛性マトリクスを修正する
 	this.makeMatrixKSW();
 
-	
 	var f = this.flist.length;
 	var d = this.dlist.length;
 			
@@ -405,17 +404,10 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 		for(var j=0; j<2; j++)
 			uf[2*i+j] = this.pos[this.flist[i]][j] - this.initpos[this.flist[i]][j];
 		
-	var fex = numeric.linspace(0,0,2*f);
-	for(var i=0; i<f; i++){
-		fex[2*i] = this.ff[2*i];
-		fex[2*i+1]= this.ff[2*i+1];
-	}
-	
 	var vf = numeric.linspace(0,0,2*f);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
 			vf[2*i+j] = this.Vel[2*this.flist[i]+j];
-	
 	
 	var Kff = numeric.rep([2*f,2*f],0);
 	for(var i=0; i<f; i++)
@@ -431,7 +423,6 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 				for(var l=0; l<2; l++)
 					Kfd[2*i+k][2*j+l] = this.K[2*this.flist[i]+k][2*this.dlist[j]+l];
 	
-	
 	var M = numeric.identity(2*f);
 	for(var i=0; i<f; i++){
 		M[2*i][2*i] = this.mass[this.flist[i]];
@@ -446,7 +437,7 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	var xf = numeric.linspace(0,0,2*f);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
-			xf[2*i+j] = this.initpos[this.flist[i]][j] + uf[2*i+j];
+			xf[2*i+j] = this.pos[this.flist[i]][j];
 
 	var fof = numeric.linspace(0,0,2*f);
 	for(var i=0; i<f; i++)
@@ -463,38 +454,44 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	var tmp = numeric.dot(Kfd,xd);
 	Mright2 = numeric.sub(Mright2,tmp);
 	Mright2 = numeric.sub(Mright2,fof);
-	Mright2 = numeric.add(Mright2,fex);
+	Mright2 = numeric.add(Mright2,this.ff);
 	Mright2 = numeric.mul(Mright2,dt);
 	var Mright = numeric.add(Mright1,Mright2);
 	
-	
 	vf = numeric.solve(Mleft,Mright);
-	
-	//LUP = numeric.ccsLUP(numeric.ccsSparse(Mleft));
-	//vf = numeric.ccsLUPSolve(LUP,Mright);
-	
 	
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
 			this.Vel[2*this.flist[i]+j]=vf[2*i+j];
-	
 
 	for(var i=0; i<d; i++)
 		for(var j=0; j<2; j++)
 			this.Vel[2*this.dlist[i]+j]=(this.ud[2*i+j]-(this.pos[this.dlist[i]][j]-this.initpos[this.dlist[i]][j]))/dt;
 
-	
 	var duf = numeric.mul(dt,vf);
 	uf = numeric.add(uf,duf);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
 			this.pos[this.flist[i]][j] = this.initpos[this.flist[i]][j] + uf[2*i+j];
 	
-	
 	for(var i=0; i<d; i++)
 		for(var j=0; j<2; j++)
 			this.pos[this.dlist[i]][j] = this.initpos[this.dlist[i]][j] + this.ud[2*i+j];
 }	
+
+
+FEM.prototype.modifyPosCld = function(xmin, ymin, xmax, ymax){
+	for(var i=0; i<this.pos.length; i++) {
+		if(this.pos[i][0]<xmin)
+			this.pos[i][0]=xmin;
+		if(this.pos[i][0]>xmax)
+			this.pos[i][0]=xmax;
+		if(this.pos[i][1]<ymin)
+			this.pos[i][1]=ymin;
+		if(this.pos[i][1]>ymax)
+			this.pos[i][1]=ymax;
+	}
+}
 	
 
 FEM.prototype.calcStress = function () {
