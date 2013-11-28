@@ -14,6 +14,16 @@ $(document).ready(function () {
 	var context = canvas.get(0).getContext("2d");
 	var canvasWidth = canvas.width();
 	var canvasHeight = canvas.height();
+
+	$(window).resize(resizeCanvas);
+	function resizeCanvas(){
+		canvas.attr("width", $(window).get(0).innerWidth*0.9);
+		canvas.attr("height", $(window).get(0).innerHeight*0.7);
+		canvasWidth = canvas.width();
+		canvasHeight = canvas.height();
+	};
+	resizeCanvas();	
+
 	
 	
 	// マウスポインタに関する変数
