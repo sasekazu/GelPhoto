@@ -363,10 +363,15 @@ $(document).ready(function () {
 	function physicsFunc() {
 
 		var gravityFlag = $('#gravityCheckBox').is(':checked');
+        var fractureFlag = $('#fractureCheckBox').is(':checked');
 
 		physicsModel.setBoudary(clickState, mousePos, gravityFlag);		
 		physicsModel.calcDynamicDeformation(0.1);
 		physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
+        if(fractureFlag) {
+	        physicsModel.calcStress();
+        	physicsModel.removeElement();
+        }
 
 
         // 描画処理
