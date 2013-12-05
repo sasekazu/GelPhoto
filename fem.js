@@ -161,7 +161,7 @@ FEM.prototype.selectHoldNodes = function(mousePos){
 
 
 // 境界条件の設定
-FEM.prototype.setBoudary = function(clickState, mousePos, gravityFlag){
+FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag){
 	
 	if(mousePos.length != this.holdNode.length)
 		this.selectHoldNodes(mousePos);

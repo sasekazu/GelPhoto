@@ -101,30 +101,6 @@ $(document).ready(function () {
 	// 最初の画像を選択
 	//img.src = "miku.png?" + new Date().getTime();
 	img.src = "donut.jpg?" + new Date().getTime();
-	/*
-	var randnum = Math.floor( Math.random() * 100 );
-	switch(randnum%6){
-		case 0:
-			img.src = "miku.png?" + new Date().getTime();
-			break;
-		case 1:
-			img.src = "bunny.jpg?" + new Date().getTime();
-			break;
-		case 2:
-			img.src = "anpanman.jpg?" + new Date().getTime();
-			break;
-		case 3:
-			img.src = "babapapa.JPG?" + new Date().getTime();
-			break;
-		case 4:
-			img.src = "hrp2.jpg?" + new Date().getTime();
-			break;
-		case 5:
-			img.src = "mumin.gif?" + new Date().getTime();
-			break;
-	}
-			*/
-
 	
 
 	// 画像が読み込まれたときに実行
@@ -375,7 +351,7 @@ $(document).ready(function () {
 		var gravityFlag = $('#gravityCheckBox').is(':checked');
         var fractureFlag = $('#fractureCheckBox').is(':checked');
 
-		physicsModel.setBoudary(clickState, mousePos, gravityFlag);		
+		physicsModel.setBoundary(clickState, mousePos, gravityFlag);		
 		physicsModel.calcDynamicDeformation(0.1);
 		physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
         if(fractureFlag) {
