@@ -459,7 +459,7 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	var Mright = numeric.add(Mright1,Mright2);
 	
 	vf = numeric.solve(Mleft,Mright);
-	
+
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
 			this.Vel[2*this.flist[i]+j]=vf[2*i+j];

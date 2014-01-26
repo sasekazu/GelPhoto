@@ -130,6 +130,7 @@ $(document).ready(function () {
     	
 	function mainloop() {
 
+		var time0 = new Date();
 	    switch (state) {
         case "drawOutLine":
             drawOutLineFunc();
@@ -144,6 +145,8 @@ $(document).ready(function () {
             physicsFunc();
             break;
 	    }
+	    var time1 = new Date();
+		console.log(time1-time0 + " [ms]");
 
 	    setTimeout(mainloop, 20);
 	}
@@ -351,8 +354,17 @@ $(document).ready(function () {
 		var gravityFlag = $('#gravityCheckBox').is(':checked');
         var fractureFlag = $('#fractureCheckBox').is(':checked');
 
+
+		var timeSetB0 = new Date();
 		physicsModel.setBoundary(clickState, mousePos, gravityFlag);		
+		var timeSetB1 = new Date();
+		console.log("setBoundary " + (timeSetB1-timeSetB0) + " [ms]");
+
+		var timeDyn0 = new Date();
 		physicsModel.calcDynamicDeformation(0.1);
+		var timeDyn1 = new Date();
+		console.log("calcDynamicDeformation " + (timeDyn1 - timeDyn0) + " [ms]");
+
 		physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
         if(fractureFlag) {
 	        physicsModel.calcStress();
@@ -414,6 +426,7 @@ $(document).ready(function () {
 			*/
 		}		
 
+
 	}
 		
 	//////////////////////////////////////////////////////////
@@ -449,7 +462,8 @@ $(document).ready(function () {
 	        mesh.laplacianSmoothing();
 
 		// 物理モデルの初期化をメッシュ完成直後に行う
-	    physicsModel=new FEM(mesh.dPos, mesh.tri);
+	    //physicsModel = new FEMSparse(mesh.dPos, mesh.tri);
+	    physicsModel = new FEM(mesh.dPos, mesh.tri);
 	    physicsModel.gripRad=minlen;
 
 	    state="generateMesh";
