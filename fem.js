@@ -25,6 +25,11 @@ function FEM(initpos, tri){
 	this.surToTri = [];		// 表面エッジ-対応する三角形要素リスト
 	this.triToSur = [];		// 三角形要素-対応する表面エッジリスト
 	this.surNode = [];		// 表面頂点リスト
+	this.colNdFlag = numeric.rep([this.posNum],0);	// for visualization
+	this.colTriFlag = numeric.rep([this.triNum],0);
+	this.center = [];	// for visualization
+	this.triRad = [];	// for visualization
+	this.normal = [];	// for visualization
 
 
 	this.makeSurface();
@@ -43,6 +48,8 @@ function FEM(initpos, tri){
 	this.beta = 0.01;    // Kに作用するレイリー減衰のパラメータ
 	this.gravity = 100;
 
+	this.penalty = 100;	// ペナルティ法による自己接触の係数
+
     // 要素剛性マトリクス作成
 	this.makeMatrixKe(young, poisson, density, thickness);
 
@@ -53,6 +60,7 @@ function FEM(initpos, tri){
 	this.foffset = numeric.linspace(0,0,2*this.posNum);
 	this.flist = [];
 	this.dlist = [];
+	this.f = [];
 	this.ff = [];
 	this.ud = [];
 	this.maxPStress = [];
@@ -85,10 +93,12 @@ FEM.prototype.makeSurface = function(){
 	// 四面体の各エッジが現在着目している四面体以外の四面体に共有されているかどうかを調べる
 	// (エッジの頂点番号からnodeToTetを参照すれば判定できる)
 	// 共有されていなければそれは表面エッジであるとみなす
-	var buf = [[0,1],[1,2],[2,0]];
+	var buf = [[0,1,2],[1,2,0],[2,0,1]];
+	var n1,n2,n3;	// bufに対応する頂点番号
 	var nt1, nt2; // nodeToTetの一次格納変数
 	var shareFlag;
 	var surCount = 0;
+	var v1,v2;	
 	this.triToSur = new Array(this.tri.length);
 	for(var i = 0; i < this.tri.length; i++) {
 		this.triToSur[i] = [];
@@ -96,8 +106,10 @@ FEM.prototype.makeSurface = function(){
 	for(var i = 0; i < this.tri.length; i++) {
 		for(var edg = 0; edg < 3; edg++) {
 			shareFlag = false;
-			nt1 = this.nodeToTri[this.tri[i][buf[edg][0]]];
-			nt2 = this.nodeToTri[this.tri[i][buf[edg][1]]];
+			n1 = this.tri[i][buf[edg][0]];
+			n2 = this.tri[i][buf[edg][1]];
+			nt1 = this.nodeToTri[n1];
+			nt2 = this.nodeToTri[n2];
 			for(var j = 0; j < nt1.length; j++) {
 				for(var k = 0; k < nt2.length; k++) {
 					if(shareFlag)break;
@@ -107,7 +119,14 @@ FEM.prototype.makeSurface = function(){
 				}
 			}
 			if(!shareFlag) {
-				this.surEdge.push([this.tri[i][buf[edg][0]], this.tri[i][buf[edg][1]]]);
+				// surEdgeに格納する頂点番号の順番が反時計回りになるようにする
+				n3 = this.tri[i][buf[edg][2]];
+				v1 = numeric.sub(this.initpos[n1],this.initpos[n3]);
+				v2 = numeric.sub(this.initpos[n2],this.initpos[n3]);
+				if(v1[0]*v2[1]-v1[1]*v2[0]>0)
+					this.surEdge.push([this.tri[i][buf[edg][0]], this.tri[i][buf[edg][1]]]);
+				else
+					this.surEdge.push([this.tri[i][buf[edg][1]], this.tri[i][buf[edg][0]]]);
 				this.surToTri.push(i);
 				this.triToSur[i].push(surCount);
 				++surCount;
@@ -256,7 +275,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 	
 	var nodeToDF = numeric.linspace(0,0,this.posNum);
 	var u = numeric.linspace(0,0,2*this.posNum);
-	var f = numeric.linspace(0,0,2*this.posNum);
+	this.f = numeric.linspace(0,0,2*this.posNum);
 
 	// 固定ノードの境界条件
 	for(var i=0; i<this.fixNode.length; i++) {
@@ -273,11 +292,11 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			u[2*i+1] = 0;
 			nodeToDF[i] = "d";
 		}else if(nodeToDF[i]!="d"){
-			f[2*i] = 0;
+			this.f[2*i] = 0;
 			if(gravityFlag)
-				f[2*i+1] = this.gravity * this.mass[i];
+				this.f[2*i+1] = this.gravity * this.mass[i];
 			else
-				f[2*i+1] = 0;
+				this.f[2*i+1] = 0;
 			
 			nodeToDF[i] = "f";
 		}
@@ -298,6 +317,84 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 	
 	if(selfCollisionFlag) {
 		//　自己接触のアルゴリズムを書く
+		var nd;		// 着目するノード番号
+		var tr;		// 着目する三角形番号
+		var area;	// 三角形の面積
+		var p0,p1,p2;	// 三角形の頂点位置ベクトル
+		var pe0,pe1;	// エッジの頂点位置ベクトル
+		var q;			// 着目するノードの位置ベクトル
+		var qc;			// 着目するノードの三角形中心からの相対位置ベクトル
+		var tmp;		// 各種2次元ベクトルの一時保管
+		var a,b,c;		// 辺の長さ
+		var ppp;		// for calc area
+		var r;			// 内接円の半径
+		var center;		// 三角形の重心ベクトル
+		var normal;		// 表面エッジの法線ベクトル
+		var qd;			// エッジ0から着目するノードへの相対位置ベクトル
+		var veclen;
+		var d;			// くいこみ量
+		// for visualization
+		this.colNdFlag = numeric.rep([this.posNum],0);
+		this.colTriFlag = numeric.rep([this.tri.length],0);
+		this.center = numeric.rep([this.tri.length,2],0);
+		this.triRad = numeric.rep([this.tri.length],0);
+		this.normal = numeric.rep([this.surEdge.length,2],0);
+
+		for(var sur = 0; sur < this.surEdge.length; sur++) {
+			tr = this.surToTri[sur];
+			// 内接円の半径を求める
+			p0 = this.pos[this.tri[tr][0]];
+			p1 = this.pos[this.tri[tr][1]];
+			p2 = this.pos[this.tri[tr][2]];
+			ppp = [[1,p0[0],p0[1]], [1,p1[0],p1[1]], [1,p2[0],p2[1]]];
+			area = Math.abs(0.5 * numeric.det(ppp));
+			if(area===0)continue;
+			tmp = numeric.sub(p2,p1);
+			a = numeric.norm2(tmp);
+			tmp = numeric.sub(p0,p2);
+			b = numeric.norm2(tmp);
+			tmp = numeric.sub(p1,p0);
+			c = numeric.norm2(tmp);
+			r = a*b*c*0.25/area;
+			// 三角形の重心を求める
+			center = numeric.add(p0,p1);
+			center = numeric.add(center,p2);
+			center = numeric.mul(center,0.333333333);
+			// エッジの法線ベクトルを求める
+			pe0 = this.pos[this.surEdge[sur][0]];
+			pe1 = this.pos[this.surEdge[sur][1]];
+			normal = [pe1[1]-pe0[1],-(pe1[0]-pe0[0])];
+			veclen = numeric.norm2(normal);
+			normal = numeric.div(normal,veclen);
+			// for visualization
+			this.center[tr] = numeric.clone(center);
+			this.triRad[tr] = r;
+			this.normal[sur] = numeric.clone(normal);
+
+			for(var i = 0; i < this.surNode.length; i++) {
+				// 着目するノードが三角形要素の頂点なら無視
+				nd = this.surNode[i];
+				if(this.tri[tr][0]===nd)continue;
+				if(this.tri[tr][1]===nd)continue;
+				if(this.tri[tr][2]===nd)continue;
+				// ノードの三角形内外判定
+				q = this.pos[nd];
+				qc = numeric.sub(q,center);
+				// くいこみ量の計算
+				qd = numeric.sub(q, pe0);
+				d = numeric.dot(normal,qd);
+				// 接触判定
+				if(numeric.norm2(qc) < r && d<0) {
+					// 外力の設定
+					for(var vt = 0; vt < 3; vt++) {
+						this.f[2*this.tri[tr][vt]+0] += this.penalty*d*normal[0]*0.333333333;
+						this.f[2*this.tri[tr][vt]+1] += this.penalty*d*normal[1]*0.333333333;
+					}
+					this.colNdFlag[nd]=1;
+					this.colTriFlag[tr]=1;
+				}
+			}
+		}
 	}
 		
 	for(var i=0; i<this.pos.length; i++){
@@ -307,8 +404,8 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			this.ud.push(u[2*i+1]);
 		}else{
 			this.flist.push(i);
-			this.ff.push(f[2*i]);
-			this.ff.push(f[2*i+1]);
+			this.ff.push(this.f[2*i]);
+			this.ff.push(this.f[2*i+1]);
 		}
 	}
 }

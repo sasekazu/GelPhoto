@@ -356,7 +356,7 @@ $(document).ready(function () {
         var meshFlag = $('#meshCheckBox').is(':checked');
 
 		var timeSetB0 = new Date();
-		physicsModel.setBoundary(clickState, mousePos, gravityFlag);		
+		physicsModel.setBoundary(clickState, mousePos, gravityFlag, true);		
 		var timeSetB1 = new Date();
 		//console.log("setBoundary " + (timeSetB1-timeSetB0) + " [ms]");
 
@@ -378,6 +378,7 @@ $(document).ready(function () {
 
 
         // 三角形の描画
+		/*
 		var color = 'rgb(0,0,0)';
 		context.strokeStyle = color;
         color = 'rgb(220,30,30)';
@@ -419,13 +420,18 @@ $(document).ready(function () {
 			
 			
 		}		
+		*/
 
 
 		if(meshFlag){
 			// メッシュの描画
-			context.strokeStyle = 'rgb(0, 0, 0)'; 
+			context.strokeStyle = 'black'; 
 			for(var i=0, len=physicsModel.tri.length; i<len; i++){
 	            if(physicsModel.removedFlag[i]) continue;
+				if(physicsModel.colTriFlag[i]===1){
+					context.fillStyle = 'gray'; 
+					drawTri(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+				}
 				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 			}
 
@@ -438,11 +444,50 @@ $(document).ready(function () {
 			context.lineWidth = 1;
 
 			// 表面ノードの描画
-   			context.fillStyle = "red"; 
 			context.strokeStyle = 'rgb(0, 0, 0)'; 
 			for(var i = 0, len = physicsModel.surNode.length; i < len; i++) {
-				drawCircle(physicsModel.pos[physicsModel.surNode[i]], 2);
+				if(physicsModel.colNdFlag[physicsModel.surNode[i]]===0)
+		   			context.fillStyle = "blue";
+				else
+		   			context.fillStyle = "red";
+				drawCircle(physicsModel.pos[physicsModel.surNode[i]], 3);
 			}
+
+			// 三角形の外接円の描画
+			context.strokeStyle = "orange";
+			for(var i = 0, len = physicsModel.tri.length; i < len; i++) {
+				if(physicsModel.triRad[i]===0) continue;
+				drawCircleS(physicsModel.center[i], physicsModel.triRad[i]);
+			}
+
+			// 表面法線ベクトルの描画
+			context.strokeStyle = 'green'; 
+			context.fillStyle = 'green';
+			var edgeCenter;
+			var nmEnd;
+			var edg1,edg2;
+			for(var i = 0, len = physicsModel.normal.length; i < len; i++) {
+				var scl = 20;
+				edg1 = physicsModel.surEdge[i][0];
+				edg2 = physicsModel.surEdge[i][1];
+				edgeCenter = numeric.add(physicsModel.pos[edg1], physicsModel.pos[edg2]);
+				edgeCenter = numeric.mul(0.5,edgeCenter);
+				nmEnd = numeric.mul(scl, physicsModel.normal[i]);
+				nmEnd = numeric.add(edgeCenter, nmEnd);
+				drawLine(edgeCenter,nmEnd);
+			}
+
+			// 外力ベクトルの描画
+			/*
+			context.strokeStyle = 'red'; 
+			var fEnd;
+			var force=[0,0];
+			for(var i = 0, len = physicsModel.posNum; i < len; i++) {
+				var scl = 20;
+				force[0] = 
+				fEnd
+			}
+			*/
 
 		}
 
