@@ -156,7 +156,7 @@ $(document).ready(function () {
 	////////　 アウトライン作成関数
 	/////////////////////////////////////////////////////////
 	function drawOutLineFunc(){
-
+        var meshFlag = $('#meshCheckBox').is(':checked');
 	    switch (clickState) {
 	        case "Down":
 	            if (drawingFlag) {
@@ -190,7 +190,8 @@ $(document).ready(function () {
 		context.clearRect(0, 0, canvasWidth, canvasHeight);
 
 		// 全体の写真を描画
-		context.drawImage(img, dx, dy, dw, dh);
+		if(!meshFlag)
+			context.drawImage(img, dx, dy, dw, dh);
 
 		context.fillStyle = 'rgb(0, 0, 0)'; // 黒
 		context.strokeStyle = 'rgb(0, 0, 0)'; // 黒
@@ -244,6 +245,9 @@ $(document).ready(function () {
 	//////  固定領域選択の処理
 	//////////////////////////////////////////////////////
 	function fixFunc() {
+		
+        var meshFlag = $('#meshCheckBox').is(':checked');
+
 		switch (clickState) {
 			case "Down":
 				if(!dragFlagf) 
@@ -273,48 +277,57 @@ $(document).ready(function () {
 
 		// メッシュの描画
 		// 三角形の描画
-		var color='rgb(0,0,0)';
-		context.strokeStyle=color;
-		color='rgb(220,30,30)';
-		context.fillStyle=color;
-		for(var i=0; i<physicsModel.tri.length; i++) {
-			if(physicsModel.removedFlag[i]) continue;
-			context.save();
+		if(meshFlag) { 
+			for(var i=0; i<physicsModel.tri.length; i++) {
+				var color = "rgb(255,100,100)";
+   				context.fillStyle = color; 
+				context.strokeStyle = 'rgb(0, 0, 0)'; 
+				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+			}
+		}else{
+			var color='rgb(0,0,0)';
+			context.strokeStyle=color;
+			color='rgb(220,30,30)';
+			context.fillStyle=color;
+			for(var i=0; i<physicsModel.tri.length; i++) {
+				if(physicsModel.removedFlag[i]) continue;
+				context.save();
 
-			// 三角形でクリップ
-			var tri=[physicsModel.tri[i][0], physicsModel.tri[i][1], physicsModel.tri[i][2]];
-			drawTriClip(physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
-			context.clip();
+				// 三角形でクリップ
+				var tri=[physicsModel.tri[i][0], physicsModel.tri[i][1], physicsModel.tri[i][2]];
+				drawTriClip(physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
+				context.clip();
 
-			var tri1=[
-				[physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1], ],
-				[physicsModel.initpos[tri[1]][0], physicsModel.initpos[tri[1]][1], ],
-				[physicsModel.initpos[tri[2]][0], physicsModel.initpos[tri[2]][1], ],
-			];
-			var tri2=[
-				[physicsModel.pos[tri[0]][0], physicsModel.pos[tri[0]][1], ],
-				[physicsModel.pos[tri[1]][0], physicsModel.pos[tri[1]][1], ],
-				[physicsModel.pos[tri[2]][0], physicsModel.pos[tri[2]][1], ],
-			];
+				var tri1=[
+					[physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1], ],
+					[physicsModel.initpos[tri[1]][0], physicsModel.initpos[tri[1]][1], ],
+					[physicsModel.initpos[tri[2]][0], physicsModel.initpos[tri[2]][1], ],
+				];
+				var tri2=[
+					[physicsModel.pos[tri[0]][0], physicsModel.pos[tri[0]][1], ],
+					[physicsModel.pos[tri[1]][0], physicsModel.pos[tri[1]][1], ],
+					[physicsModel.pos[tri[2]][0], physicsModel.pos[tri[2]][1], ],
+				];
 
-			// 画像の基準座標系に変換
-			context.setTransform(1, 0, 0, 1, 0, 0);
-			// 三角形基準座標系に並進変換
-			context.transform(1, 0, 0, 1, physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1]);
-			// 変形に伴うアフィン変換
-			var aff=getAffineMat(tri1, tri2);
-			context.transform(aff[0], aff[1], aff[2], aff[3], aff[4], aff[5]);
-			// 画像の基準座標系に並進変換
-			context.transform(1, 0, 0, 1, -physicsModel.initpos[tri[0]][0], -physicsModel.initpos[tri[0]][1]);
-			// 画像の描画
-			context.drawImage(img, dx, dy, dw, dh);
+				// 画像の基準座標系に変換
+				context.setTransform(1, 0, 0, 1, 0, 0);
+				// 三角形基準座標系に並進変換
+				context.transform(1, 0, 0, 1, physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1]);
+				// 変形に伴うアフィン変換
+				var aff=getAffineMat(tri1, tri2);
+				context.transform(aff[0], aff[1], aff[2], aff[3], aff[4], aff[5]);
+				// 画像の基準座標系に並進変換
+				context.transform(1, 0, 0, 1, -physicsModel.initpos[tri[0]][0], -physicsModel.initpos[tri[0]][1]);
+				// 画像の描画
+				context.drawImage(img, dx, dy, dw, dh);
 
-			context.restore();
+				context.restore();
 
-            var color = "rgb(255,100,100)";
-   			context.fillStyle = color; 
-			context.strokeStyle = 'rgb(0, 0, 0)'; 
-			drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+				var color = "rgb(255,100,100)";
+   				context.fillStyle = color; 
+				context.strokeStyle = 'rgb(0, 0, 0)'; 
+				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+			}
 		}
 
 		// 固定点の描画
@@ -377,52 +390,6 @@ $(document).ready(function () {
 		context.clearRect(0, 0, canvasWidth, canvasHeight);
 
 
-        // 三角形の描画
-		/*
-		var color = 'rgb(0,0,0)';
-		context.strokeStyle = color;
-        color = 'rgb(220,30,30)';
-		context.fillStyle = color;
-		for(var i=0, len=physicsModel.tri.length; i<len; i++){
-            if(physicsModel.removedFlag[i]) continue;
-			context.save();
-
-            // 三角形でクリップ
-			var tri = [physicsModel.tri[i][0], physicsModel.tri[i][1], physicsModel.tri[i][2]];
-			drawTriClip(physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
-			context.clip();
-
-			var tri1 = [
-				[physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1], ],
-				[physicsModel.initpos[tri[1]][0], physicsModel.initpos[tri[1]][1], ],
-				[physicsModel.initpos[tri[2]][0], physicsModel.initpos[tri[2]][1], ],
-			];
-			var tri2 = [
-				[physicsModel.pos[tri[0]][0], physicsModel.pos[tri[0]][1], ],
-				[physicsModel.pos[tri[1]][0], physicsModel.pos[tri[1]][1], ],
-				[physicsModel.pos[tri[2]][0], physicsModel.pos[tri[2]][1], ],
-			];
-
-
-			// 画像の基準座標系に変換
-			context.setTransform(1, 0, 0, 1, 0, 0);
-			// 三角形基準座標系に並進変換
-			context.transform(1, 0, 0, 1, physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1]);
-			// 変形に伴うアフィン変換
-			var aff = getAffineMat(tri1, tri2);
-			context.transform(aff[0], aff[1], aff[2], aff[3], aff[4], aff[5]);
-			// 画像の基準座標系に並進変換
-			context.transform(1, 0, 0, 1, -physicsModel.initpos[tri[0]][0], -physicsModel.initpos[tri[0]][1]);
-			// 画像の描画
-			context.drawImage(img, dx, dy, dw, dh);
-            
-			context.restore();
-			
-			
-		}		
-		*/
-
-
 		if(meshFlag){
 			// メッシュの描画
 			context.strokeStyle = 'black'; 
@@ -453,13 +420,6 @@ $(document).ready(function () {
 				drawCircle(physicsModel.pos[physicsModel.surNode[i]], 3);
 			}
 
-			// 三角形の外接円の描画
-			context.strokeStyle = "orange";
-			for(var i = 0, len = physicsModel.tri.length; i < len; i++) {
-				if(physicsModel.triRad[i]===0) continue;
-				drawCircleS(physicsModel.center[i], physicsModel.triRad[i]);
-			}
-
 			// 表面法線ベクトルの描画
 			context.strokeStyle = 'green'; 
 			context.fillStyle = 'green';
@@ -478,16 +438,57 @@ $(document).ready(function () {
 			}
 
 			// 外力ベクトルの描画
-			/*
 			context.strokeStyle = 'red'; 
 			var fEnd;
 			var force=[0,0];
 			for(var i = 0, len = physicsModel.posNum; i < len; i++) {
-				var scl = 20;
-				force[0] = 
-				fEnd
+				var scl = 10;
+				force[0] = physicsModel.f[2*i+0];
+				force[1] = physicsModel.f[2*i+1];
+				fEnd = numeric.add(physicsModel.pos[i], force);
+				drawLine(physicsModel.pos[i],fEnd);
 			}
-			*/
+		} else {
+			// 三角形の描画
+			var color = 'rgb(0,0,0)';
+			context.strokeStyle = color;
+			color = 'rgb(220,30,30)';
+			context.fillStyle = color;
+			for(var i=0, len=physicsModel.tri.length; i<len; i++){
+				if(physicsModel.removedFlag[i]) continue;
+				context.save();
+
+				// 三角形でクリップ
+				var tri = [physicsModel.tri[i][0], physicsModel.tri[i][1], physicsModel.tri[i][2]];
+				drawTriClip(physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
+				context.clip();
+
+				var tri1 = [
+					[physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1], ],
+					[physicsModel.initpos[tri[1]][0], physicsModel.initpos[tri[1]][1], ],
+					[physicsModel.initpos[tri[2]][0], physicsModel.initpos[tri[2]][1], ],
+				];
+				var tri2 = [
+					[physicsModel.pos[tri[0]][0], physicsModel.pos[tri[0]][1], ],
+					[physicsModel.pos[tri[1]][0], physicsModel.pos[tri[1]][1], ],
+					[physicsModel.pos[tri[2]][0], physicsModel.pos[tri[2]][1], ],
+				];
+
+				// 画像の基準座標系に変換
+				context.setTransform(1, 0, 0, 1, 0, 0);
+				// 三角形基準座標系に並進変換
+				context.transform(1, 0, 0, 1, physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1]);
+				// 変形に伴うアフィン変換
+				var aff = getAffineMat(tri1, tri2);
+				context.transform(aff[0], aff[1], aff[2], aff[3], aff[4], aff[5]);
+				// 画像の基準座標系に並進変換
+				context.transform(1, 0, 0, 1, -physicsModel.initpos[tri[0]][0], -physicsModel.initpos[tri[0]][1]);
+				// 画像の描画
+				context.drawImage(img, dx, dy, dw, dh);
+            
+				context.restore();
+			
+			}		
 
 		}
 

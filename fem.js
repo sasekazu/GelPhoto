@@ -48,7 +48,7 @@ function FEM(initpos, tri){
 	this.beta = 0.01;    // Kに作用するレイリー減衰のパラメータ
 	this.gravity = 100;
 
-	this.penalty = 500;	// ペナルティ法による自己接触の係数
+	this.penalty = 100;	// ペナルティ法による自己接触の係数
 
     // 要素剛性マトリクス作成
 	this.makeMatrixKe(young, poisson, density, thickness);
@@ -315,8 +315,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 		}
 	}
 	
-	if(selfCollisionFlag) {
-		//　自己接触のアルゴリズムを書く
+	if(0) {
 		var nd;		// 着目するノード番号
 		var tr;		// 着目する三角形番号
 		var area;	// 三角形の面積
@@ -395,6 +394,85 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 				}
 			}
 		}
+	}
+	if(selfCollisionFlag) {
+		var nd;		// 着目するノード番号
+		var tr;		// 着目する三角形番号
+		var p0,p1,p2;	// 三角形の頂点位置ベクトル
+		var pe0,pe1;	// エッジの頂点位置ベクトル
+		var q;			// 着目するノードの位置ベクトル
+		var v0,v1,v2;	// 辺ベクトル
+		var q0,q1,q2;	// i番頂点からqまでの相対位置ベクトル
+		var tmp;		// 各種2次元ベクトルの一時保管
+		var normal;		// 表面エッジの法線ベクトル
+		var qd;			// エッジ0から着目するノードへの相対位置ベクトル
+		var veclen;
+		var d;			// くいこみ量
+		// for visualization
+		this.colNdFlag = numeric.rep([this.posNum],0);
+		this.colTriFlag = numeric.rep([this.tri.length],0);
+		this.center = numeric.rep([this.tri.length,2],0);
+		this.triRad = numeric.rep([this.tri.length],0);
+		this.normal = numeric.rep([this.surEdge.length,2],0);
+		for(var sur = 0; sur < this.surEdge.length; sur++) {
+			tr = this.surToTri[sur];
+			p0 = this.pos[this.tri[tr][0]];
+			p1 = this.pos[this.tri[tr][1]];
+			p2 = this.pos[this.tri[tr][2]];
+			// エッジの法線ベクトルを求める
+			pe0 = this.pos[this.surEdge[sur][0]];
+			pe1 = this.pos[this.surEdge[sur][1]];
+			normal = [pe1[1]-pe0[1],-(pe1[0]-pe0[0])];
+			veclen = numeric.norm2(normal);
+			normal = numeric.div(normal,veclen);
+			// 辺ベクトルの作成
+			v0 = numeric.sub(p1,p0);
+			v20 = numeric.sub(p2,p0);
+			v1 = numeric.sub(p2,p1);
+			v2 = numeric.sub(p0,p2);
+			// for visualization
+			this.center[tr] = numeric.clone(center);
+			this.triRad[tr] = r;
+			this.normal[sur] = numeric.clone(normal);
+
+			for(var i = 0; i < this.surNode.length; i++) {
+				// 着目するノードが三角形要素の頂点なら無視
+				nd = this.surNode[i];
+				if(this.tri[tr][0]===nd)continue;
+				if(this.tri[tr][1]===nd)continue;
+				if(this.tri[tr][2]===nd)continue;
+				// ノードの三角形内外判定
+				q = this.pos[nd];
+				q0 = numeric.sub(q,p0);
+				q1 = numeric.sub(q,p1);
+				q2 = numeric.sub(q,p2);
+				// 三角形要素の格納順番が時計回りか反時計回りかによって
+				// 三角形に対する頂点の内外判定の符号を変える
+				if(v0[0] * v20[1] - v0[1] * v20[0] > 0) {
+					if(v0[0]*q0[1]-v0[1]*q0[0]<0 
+						|| v1[0]*q1[1]-v1[1]*q1[0]<0 
+						|| v2[0]*q2[1]-v2[1]*q2[0]<0 )
+						continue;
+				} else {
+					if(v0[0]*q0[1]-v0[1]*q0[0]>0 
+						|| v1[0]*q1[1]-v1[1]*q1[0]>0 
+						|| v2[0]*q2[1]-v2[1]*q2[0]>0 )
+						continue;
+				}
+
+				// くいこみ量の計算
+				qd = numeric.sub(q, pe0);
+				d = numeric.dot(normal,qd);
+				// 外力の設定
+				for(var vt = 0; vt < 3; vt++) {
+					this.f[2*this.tri[tr][vt]+0] += this.penalty*d*normal[0]*0.333333333;
+					this.f[2*this.tri[tr][vt]+1] += this.penalty*d*normal[1]*0.333333333;
+				}
+				this.colNdFlag[nd]=1;
+				this.colTriFlag[tr]=1;
+			}
+		}
+
 	}
 		
 	for(var i=0; i<this.pos.length; i++){
