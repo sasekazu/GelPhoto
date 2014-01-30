@@ -353,7 +353,7 @@ $(document).ready(function () {
 
 		var gravityFlag = $('#gravityCheckBox').is(':checked');
         var fractureFlag = $('#fractureCheckBox').is(':checked');
-
+        var meshFlag = $('#meshCheckBox').is(':checked');
 
 		var timeSetB0 = new Date();
 		physicsModel.setBoundary(clickState, mousePos, gravityFlag);		
@@ -382,7 +382,7 @@ $(document).ready(function () {
 		context.strokeStyle = color;
         color = 'rgb(220,30,30)';
 		context.fillStyle = color;
-		for(var i=0; i<physicsModel.tri.length; i++){
+		for(var i=0, len=physicsModel.tri.length; i<len; i++){
             if(physicsModel.removedFlag[i]) continue;
 			context.save();
 
@@ -417,14 +417,18 @@ $(document).ready(function () {
             
 			context.restore();
 			
-			/*
-            var color = "rgb(255,100,100)";
-   			context.fillStyle = color; 
-			context.strokeStyle = 'rgb(0, 0, 0)'; 
-			drawTri(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-			drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-			*/
+			
 		}		
+
+
+		if(meshFlag){
+			for(var i=0, len=physicsModel.tri.length; i<len; i++){
+				var color = "rgb(255,100,100)";
+   				context.fillStyle = color; 
+				context.strokeStyle = 'rgb(0, 0, 0)'; 
+				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+			}
+		}
 
 
 	}
