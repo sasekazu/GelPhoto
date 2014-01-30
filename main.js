@@ -422,12 +422,28 @@ $(document).ready(function () {
 
 
 		if(meshFlag){
+			// メッシュの描画
+			context.strokeStyle = 'rgb(0, 0, 0)'; 
 			for(var i=0, len=physicsModel.tri.length; i<len; i++){
-				var color = "rgb(255,100,100)";
-   				context.fillStyle = color; 
-				context.strokeStyle = 'rgb(0, 0, 0)'; 
+	            if(physicsModel.removedFlag[i]) continue;
 				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 			}
+
+			// 表面エッジの描画
+			context.lineWidth = 3;
+			context.strokeStyle = 'black'; 
+			for(var i = 0, len = physicsModel.surEdge.length; i < len; i++) {
+				drawLine(physicsModel.pos[physicsModel.surEdge[i][0]],physicsModel.pos[physicsModel.surEdge[i][1]])
+			}
+			context.lineWidth = 1;
+
+			// 表面ノードの描画
+   			context.fillStyle = "red"; 
+			context.strokeStyle = 'rgb(0, 0, 0)'; 
+			for(var i = 0, len = physicsModel.surNode.length; i < len; i++) {
+				drawCircle(physicsModel.pos[physicsModel.surNode[i]], 2);
+			}
+
 		}
 
 	}

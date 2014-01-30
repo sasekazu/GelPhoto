@@ -24,6 +24,7 @@ function FEM(initpos, tri){
 	this.surEdge = [];			// 表面エッジリスト
 	this.surToTri = [];		// 表面エッジ-対応する三角形要素リスト
 	this.triToSur = [];		// 三角形要素-対応する表面エッジリスト
+	this.surNode = [];		// 表面頂点リスト
 
 
 	this.makeSurface();
@@ -114,6 +115,23 @@ FEM.prototype.makeSurface = function(){
 		}
 	}
 
+	// surNodeの作成
+	surNode = [];
+	var nd, dupFlag;
+	for(var edg = 0; edg < this.surEdge.length; edg++) {
+		for(var i = 0; i < 2; i++) {
+			dupFlag = false;
+			nd = this.surEdge[edg][i];
+			for(var j = 0; j < this.surNode.length; j++) {
+				if(nd === this.surNode[j]) {
+					dupFlag = true;
+					break;
+				}
+			}
+			if(!dupFlag)
+				this.surNode.push(nd);
+		}
+	}
 }
 
 FEM.prototype.makeMatrixKe = function(young, poisson, density, thickness){
