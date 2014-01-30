@@ -146,7 +146,7 @@ $(document).ready(function () {
             break;
 	    }
 	    var time1 = new Date();
-		console.log(time1-time0 + " [ms]");
+		//console.log(time1-time0 + " [ms]");
 
 	    setTimeout(mainloop, 20);
 	}
@@ -358,12 +358,12 @@ $(document).ready(function () {
 		var timeSetB0 = new Date();
 		physicsModel.setBoundary(clickState, mousePos, gravityFlag);		
 		var timeSetB1 = new Date();
-		console.log("setBoundary " + (timeSetB1-timeSetB0) + " [ms]");
+		//console.log("setBoundary " + (timeSetB1-timeSetB0) + " [ms]");
 
 		var timeDyn0 = new Date();
 		physicsModel.calcDynamicDeformation(0.1);
 		var timeDyn1 = new Date();
-		console.log("calcDynamicDeformation " + (timeDyn1 - timeDyn0) + " [ms]");
+		//console.log("calcDynamicDeformation " + (timeDyn1 - timeDyn0) + " [ms]");
 
 		physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
         if(fractureFlag) {
@@ -430,7 +430,6 @@ $(document).ready(function () {
 			}
 		}
 
-
 	}
 		
 	//////////////////////////////////////////////////////////
@@ -467,10 +466,10 @@ $(document).ready(function () {
 
 		// 物理モデルの初期化をメッシュ完成直後に行う
 	    //physicsModel = new FEMSparse(mesh.dPos, mesh.tri);
-	    physicsModel = new FEM(mesh.dPos, mesh.tri);
+	    physicsModel = new FEM(mesh.dPos, mesh.tri, outline);
 	    physicsModel.gripRad=minlen;
 
-	    state="generateMesh";
+	    state="physics";
 	    console.log("posNum "+physicsModel.pos.length);
 	    console.log("triNum "+physicsModel.tri.length);
 	});

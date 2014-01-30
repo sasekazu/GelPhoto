@@ -6,8 +6,8 @@
 /////// 線分クラス
 //////////////////////////////////////////////////
 function LineSeg(st, ed){
-	this.start = numeric.mul(1, st);   // start point
-	this.end = numeric.mul(1, ed);    // end point
+	this.start = numeric.clone(st);   // start point [x,y]
+	this.end = numeric.clone(ed);    // end point [x,y]
 	this.a = this.end[1] - this.start[1];
 	this.b = this.start[0] - this.end[0];
 	this.c = (this.end[0]-this.start[0])*this.start[1]
@@ -76,7 +76,7 @@ LineSeg.prototype.crossYpos = function(x){
 //////////////////////////////////////////////////
 function ClosedCurve(resol) {
 	this.endpos = [];
-	this.lines = [];
+	this.lines = []; // LineSegクラスのオブジェクトのリスト
 	this.minlen = resol;
 	this.closedFlag = false;
 }

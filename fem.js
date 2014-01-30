@@ -1,15 +1,34 @@
+// JavaScript Document
+/// <reference path="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js" />
+/// <reference path="numeric-1.2.6.min.js" />
+/// <reference path="outline.js" />
+/// <reference path="delaunay.js" />
+/// <reference path="fem.js" />
+
+
+
 ////////////////////////////////////////////////////////////
 // FEMクラスの定義
 ////////////////////////////////////////////////////////////
 	
 function FEM(initpos, tri){
-	this.pos = numeric.mul(initpos,1);      // 節点現在位置
-	this.initpos = numeric.mul(initpos,1);  // 節点初期位置
+	this.pos = numeric.clone(initpos);      // 節点現在位置
+	this.initpos = numeric.clone(initpos);  // 節点初期位置
 
 	this.pos.push([0,0]);	// ゴミを追加、こいつを固定点にすることでなぜか解が安定する
 	this.initpos.push([0,0]);
+	this.posNum = this.pos.length;
 
-	this.tri = numeric.mul(tri, 1); // 三角形要素の節点リスト
+	this.tri = numeric.clone(tri); // 三角形要素の節点リスト
+	this.nodeToTri = [];		// ノードに接続している三角形要素リスト
+	this.surEdge = [];			// 表面エッジリスト
+	this.surToTri = [];		// 表面エッジ-対応する三角形要素リスト
+	this.triToSur = [];		// 三角形要素-対応する表面エッジリスト
+
+
+	this.makeSurface();
+
+
 	this.Re = [];           // 要素回転マトリクス
 	this.Be = [];           // 要素 ひずみマトリクス
 	this.De = [];           // 要素 ひずみ-応力変換マトリクス
@@ -28,7 +47,6 @@ function FEM(initpos, tri){
 
 	this.K = [];
 	this.makeMatrixK();
-	this.posNum = this.pos.length;
 	this.Vel = numeric.linspace(0,0,2*this.posNum);
 	this.th = numeric.linspace(0,0,this.tri.length);
 	this.foffset = numeric.linspace(0,0,2*this.posNum);
@@ -49,6 +67,53 @@ function FEM(initpos, tri){
 	this.mousePosClick = [];
 	this.uClick = []; // setBoundaryのためのメンバ, クリック時のUベクトル
 	this.gripRad = 50; // setBoudaryにおける周辺拘束領域の半径
+}
+
+
+FEM.prototype.makeSurface = function(){
+	// nodeToTriの作成
+	this.nodeToTri = new Array(this.posNum);
+	for(var i=0; i<this.posNum; i++)
+		this.nodeToTri[i] = [];
+	for(var i = 0; i < this.tri.length; i++) 
+		for(var vert = 0; vert < 3; vert++) 
+			this.nodeToTri[this.tri[i][vert]].push(i);
+
+	// surEdge, surToTri, triToSurの作成
+	// 四面体についてのループを回し、
+	// 四面体の各エッジが現在着目している四面体以外の四面体に共有されているかどうかを調べる
+	// (エッジの頂点番号からnodeToTetを参照すれば判定できる)
+	// 共有されていなければそれは表面エッジであるとみなす
+	var buf = [[0,1],[1,2],[2,0]];
+	var nt1, nt2; // nodeToTetの一次格納変数
+	var shareFlag;
+	var surCount = 0;
+	this.triToSur = new Array(this.tri.length);
+	for(var i = 0; i < this.tri.length; i++) {
+		this.triToSur[i] = [];
+	}
+	for(var i = 0; i < this.tri.length; i++) {
+		for(var edg = 0; edg < 3; edg++) {
+			shareFlag = false;
+			nt1 = this.nodeToTri[this.tri[i][buf[edg][0]]];
+			nt2 = this.nodeToTri[this.tri[i][buf[edg][1]]];
+			for(var j = 0; j < nt1.length; j++) {
+				for(var k = 0; k < nt2.length; k++) {
+					if(shareFlag)break;
+					if(nt1[j] === nt2[k] && nt1[j] !== i) {
+						shareFlag = true;
+					}
+				}
+			}
+			if(!shareFlag) {
+				this.surEdge.push([this.tri[i][buf[edg][0]], this.tri[i][buf[edg][1]]]);
+				this.surToTri.push(i);
+				this.triToSur[i].push(surCount);
+				++surCount;
+			}
+		}
+	}
+
 }
 
 FEM.prototype.makeMatrixKe = function(young, poisson, density, thickness){
@@ -161,7 +226,7 @@ FEM.prototype.selectHoldNodes = function(mousePos){
 
 
 // 境界条件の設定
-FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag){
+FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfCollisionFlag){
 	
 	if(mousePos.length != this.holdNode.length)
 		this.selectHoldNodes(mousePos);
@@ -213,6 +278,9 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag){
 		}
 	}
 	
+	if(selfCollisionFlag) {
+		//　自己接触のアルゴリズムを書く
+	}
 		
 	for(var i=0; i<this.pos.length; i++){
 		if(nodeToDF[i] == "d"){
