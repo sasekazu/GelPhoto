@@ -48,7 +48,7 @@ function FEM(initpos, tri){
 	this.beta = 0.01;    // Kに作用するレイリー減衰のパラメータ
 	this.gravity = 100;
 
-	this.penalty = 100;	// ペナルティ法による自己接触の係数
+	this.penalty = 500;	// ペナルティ法による自己接触の係数
 
     // 要素剛性マトリクス作成
 	this.makeMatrixKe(young, poisson, density, thickness);
@@ -355,11 +355,11 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			b = numeric.norm2(tmp);
 			tmp = numeric.sub(p1,p0);
 			c = numeric.norm2(tmp);
-			r = a*b*c*0.25/area;
-			// 三角形の重心を求める
-			center = numeric.add(p0,p1);
-			center = numeric.add(center,p2);
-			center = numeric.mul(center,0.333333333);
+			r = 2.0/(a+b+c)*area;
+			// 三角形の内心を求める
+			center = [0,0];
+			center[0] = (a*p0[0]+b*p1[0]+c*p2[0])/(a+b+c);
+			center[1] = (a*p0[1]+b*p1[1]+c*p2[1])/(a+b+c);
 			// エッジの法線ベクトルを求める
 			pe0 = this.pos[this.surEdge[sur][0]];
 			pe1 = this.pos[this.surEdge[sur][1]];
