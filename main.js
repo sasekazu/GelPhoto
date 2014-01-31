@@ -100,7 +100,8 @@ $(document).ready(function () {
 
 	// 最初の画像を選択
 	//img.src = "miku.png?" + new Date().getTime();
-	img.src = "donut.jpg?" + new Date().getTime();
+	//img.src = "donut.jpg?" + new Date().getTime();
+	img.src = "hachinosu.jpg?" + new Date().getTime();
 	
 
 	// 画像が読み込まれたときに実行

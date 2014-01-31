@@ -311,10 +311,11 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 				u[2*nd]   = this.uClick[cl][2*nd]+mousePos[cl][0]-this.mousePosClick[cl][0];
 				u[2*nd+1] = this.uClick[cl][2*nd+1]+mousePos[cl][1]-this.mousePosClick[cl][1];
 				nodeToDF[nd] = "d";
-			}	
+			}
 		}
 	}
 	
+	// 内接球を用いた内外判定によるペナルティ法
 	if(0) {
 		var nd;		// 着目するノード番号
 		var tr;		// 着目する三角形番号
@@ -389,12 +390,18 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 						this.f[2*this.tri[tr][vt]+0] += this.penalty*d*normal[0]*0.333333333;
 						this.f[2*this.tri[tr][vt]+1] += this.penalty*d*normal[1]*0.333333333;
 					}
+					// 頂点への反作用
+					this.f[2*nd+0] += -this.penalty*d*normal[0];
+					this.f[2*nd+1] += -this.penalty*d*normal[1];
+					// for visualization 
 					this.colNdFlag[nd]=1;
 					this.colTriFlag[tr]=1;
 				}
 			}
 		}
 	}
+
+	// 三角形の内外判定によるペナルティ法
 	if(selfCollisionFlag) {
 		var nd;		// 着目するノード番号
 		var tr;		// 着目する三角形番号
@@ -459,15 +466,25 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 						|| v2[0]*q2[1]-v2[1]*q2[0]>0 )
 						continue;
 				}
-
 				// くいこみ量の計算
 				qd = numeric.sub(q, pe0);
 				d = numeric.dot(normal,qd);
 				// 外力の設定
+				/*
 				for(var vt = 0; vt < 3; vt++) {
 					this.f[2*this.tri[tr][vt]+0] += this.penalty*d*normal[0]*0.333333333;
 					this.f[2*this.tri[tr][vt]+1] += this.penalty*d*normal[1]*0.333333333;
 				}
+				*/
+				for(var vt = 0; vt < 2; vt++) {
+					this.f[2*this.surEdge[sur][vt]+0] += this.penalty*d*normal[0]*0.5;
+					this.f[2*this.surEdge[sur][vt]+1] += this.penalty*d*normal[1]*0.5;
+				}
+
+				// 頂点への反作用
+				this.f[2*nd+0] += -this.penalty*d*normal[0];
+				this.f[2*nd+1] += -this.penalty*d*normal[1];
+				// for visualization
 				this.colNdFlag[nd]=1;
 				this.colTriFlag[tr]=1;
 			}
