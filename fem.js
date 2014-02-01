@@ -25,9 +25,12 @@ function FEM(initpos, tri){
 	this.surToTri = [];		// 表面エッジ-対応する三角形要素リスト
 	this.triToSur = [];		// 三角形要素-対応する表面エッジリスト
 	this.surNode = [];		// 表面頂点リスト
-	this.colNdFlag = numeric.rep([this.posNum],0);	// for visualization
+	this.sndToSur = [];	// 表面頂点に接続している表面エッジリスト
+	this.sndToUnDupTri = [];	// 表面頂点に接続している三角形のうち表面エッジを有していないもののリスト
+	this.colNdFlag = numeric.rep([this.posNum], 0);	// for visualization
 	this.colTriFlag = numeric.rep([this.triNum],0);
 	this.normal = [];	// 表面エッジの法線ベクトル
+	this.ndNormal = [];	// 頂点法線ベクトル
 
 
 	this.makeSurface();
@@ -86,7 +89,7 @@ FEM.prototype.makeSurface = function(){
 		for(var vert = 0; vert < 3; vert++) 
 			this.nodeToTri[this.tri[i][vert]].push(i);
 
-	// surEdge, surToTri, triToSurの作成
+	// surEdge, surToTri, triToSur, sndToSurの作成
 	// 四面体についてのループを回し、
 	// 四面体の各エッジが現在着目している四面体以外の四面体に共有されているかどうかを調べる
 	// (エッジの頂点番号からnodeToTetを参照すれば判定できる)
@@ -132,8 +135,8 @@ FEM.prototype.makeSurface = function(){
 		}
 	}
 
-	// surNodeの作成
-	surNode = [];
+	// surNode, sndToSurの作成
+	this.surNode = [];
 	var nd, dupFlag;
 	for(var edg = 0; edg < this.surEdge.length; edg++) {
 		for(var i = 0; i < 2; i++) {
@@ -142,11 +145,35 @@ FEM.prototype.makeSurface = function(){
 			for(var j = 0; j < this.surNode.length; j++) {
 				if(nd === this.surNode[j]) {
 					dupFlag = true;
+					this.sndToSur[j].push(edg);
+					break;
+				}
+			}
+			if(!dupFlag){
+				this.surNode.push(nd);
+				this.sndToSur.push([edg]);
+			}
+		}
+	}
+
+	// sndToUnDupTriの作成
+	this.sndToUnDupTri = new Array(this.surNode.length);
+	for(var i=0; i<this.surNode.length; ++i)
+		this.sndToUnDupTri[i] = [];
+	var nd;
+	var dupFlag;
+	for(var snd=0; snd<this.surNode.length; ++snd){
+		nd = this.surNode[snd];
+		for(var ntri=0; ntri<this.nodeToTri[nd].length; ++ntri){
+			dupFlag = false;
+			for(var edg=0; edg<this.sndToSur[snd].length; ++edg){
+				if(this.nodeToTri[nd][ntri] == this.surToTri[this.sndToSur[snd][edg]]){
+					dupFlag = true;
 					break;
 				}
 			}
 			if(!dupFlag)
-				this.surNode.push(nd);
+				this.sndToUnDupTri[snd].push(this.nodeToTri[nd][ntri]);
 		}
 	}
 }
@@ -313,12 +340,12 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 		}
 	}
 
-	// 法線ベクトルの作成
+	// エッジ法線ベクトルの作成
 	this.normal = numeric.rep([this.surEdge.length, 2], 0);
 	var pe0, pe1;	// エッジの頂点位置ベクトル
 	var veclen;
 	var normalTmp;
-	for(var sur = 0; sur < this.surEdge.length; sur++) {
+	for(var sur = 0; sur < this.surEdge.length; ++sur) {
 		pe0 = this.pos[this.surEdge[sur][0]];
 		pe1 = this.pos[this.surEdge[sur][1]];
 		normalTmp = [pe1[1] - pe0[1], -(pe1[0] - pe0[0])];
@@ -326,13 +353,23 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 		this.normal[sur] = numeric.div(normalTmp, veclen);
 	}
 
+	// 頂点法線ベクトルの作成
+	this.ndNormal = numeric.rep([this.surNode.length,2],0);
+	var ndNormalTmp, ndNmNorm;
+	for(var snd = 0; snd < this.surNode.length; ++snd) {
+		ndNormalTmp = [0,0];
+		for(var sedg = 0; sedg < this.sndToSur[snd].length; ++sedg) 
+			ndNormalTmp = numeric.add(ndNormalTmp, this.normal[this.sndToSur[snd][sedg]]);
+		ndNmNorm = numeric.norm2(ndNormalTmp);
+		this.ndNormal[snd] = numeric.div(ndNormalTmp, ndNmNorm);
+	}
 
 	// 三角形の内外判定によるペナルティ法
 	if(selfCollisionFlag) {
 		var nd;		// 着目するノード番号
 		var tr;		// 着目する三角形番号
 		var p0,p1,p2;	// 三角形の頂点位置ベクトル
-		var pe0,pe1;	// エッジの頂点位置ベクトル
+		var pe0;	// エッジの頂点位置ベクトル
 		var q;			// 着目するノードの位置ベクトル
 		var v0,v1,v2;	// 辺ベクトル
 		var q0,q1,q2;	// i番頂点からqまでの相対位置ベクトル
@@ -347,9 +384,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			p0 = this.pos[this.tri[tr][0]];
 			p1 = this.pos[this.tri[tr][1]];
 			p2 = this.pos[this.tri[tr][2]];
-			// エッジの法線ベクトルを求める
 			pe0 = this.pos[this.surEdge[sur][0]];
-			pe1 = this.pos[this.surEdge[sur][1]];
 			// 辺ベクトルの作成
 			v0 = numeric.sub(p1,p0);
 			v20 = numeric.sub(p2,p0);
@@ -384,17 +419,10 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 				qd = numeric.sub(q, pe0);
 				d = numeric.dot(normal,qd);
 				// 外力の設定
-				/*
-				for(var vt = 0; vt < 3; vt++) {
-					this.f[2*this.tri[tr][vt]+0] += this.penalty*d*normal[0]*0.333333333;
-					this.f[2*this.tri[tr][vt]+1] += this.penalty*d*normal[1]*0.333333333;
-				}
-				*/
 				for(var vt = 0; vt < 2; vt++) {
 					this.f[2*this.surEdge[sur][vt]+0] += this.penalty*d*normal[0]*0.5;
 					this.f[2*this.surEdge[sur][vt]+1] += this.penalty*d*normal[1]*0.5;
 				}
-
 				// 頂点への反作用
 				this.f[2*nd+0] += -this.penalty*d*normal[0];
 				this.f[2*nd+1] += -this.penalty*d*normal[1];
@@ -404,6 +432,59 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			}
 		}
 
+		// 表面内側の三角形との接触判定
+		for(var snd=0; snd<this.surNode.length; ++snd){
+			for(var str=0; str<this.sndToUnDupTri[snd].length; ++str){
+				tr = this.sndToUnDupTri[snd][str];
+				p0 = this.pos[this.tri[tr][0]];
+				p1 = this.pos[this.tri[tr][1]];
+				p2 = this.pos[this.tri[tr][2]];
+				// 辺ベクトルの作成
+				v0 = numeric.sub(p1,p0);
+				v20 = numeric.sub(p2,p0);
+				v1 = numeric.sub(p2,p1);
+				v2 = numeric.sub(p0,p2);
+				normal = this.ndNormal[snd];
+				for(var i = 0; i < this.surNode.length; i++) {
+					// 着目するノードが三角形要素の頂点なら無視
+					nd = this.surNode[i];
+					if(this.tri[tr][0]===nd)continue;
+					if(this.tri[tr][1]===nd)continue;
+					if(this.tri[tr][2]===nd)continue;
+					// ノードの三角形内外判定
+					q = this.pos[nd];
+					q0 = numeric.sub(q,p0);
+					q1 = numeric.sub(q,p1);
+					q2 = numeric.sub(q,p2);
+					// 三角形要素の格納順番が時計回りか反時計回りかによって
+					// 三角形に対する頂点の内外判定の符号を変える
+					if(v0[0] * v20[1] - v0[1] * v20[0] > 0) {
+						if(v0[0]*q0[1]-v0[1]*q0[0]<0 
+							|| v1[0]*q1[1]-v1[1]*q1[0]<0 
+							|| v2[0]*q2[1]-v2[1]*q2[0]<0 )
+							continue;
+					} else {
+						if(v0[0]*q0[1]-v0[1]*q0[0]>0 
+							|| v1[0]*q1[1]-v1[1]*q1[0]>0 
+							|| v2[0]*q2[1]-v2[1]*q2[0]>0 )
+							continue;
+					}
+					// くいこみ量の計算
+					qd = numeric.sub(q, this.pos[this.surNode[snd]]);
+					d = numeric.dot(normal,qd);
+					// 外力の設定
+					// 食い込んだ頂点への反発力
+					this.f[2*this.surNode[snd]+0] += this.penalty*d*normal[0];
+					this.f[2*this.surNode[snd]+1] += this.penalty*d*normal[1];
+					// 頂点への反作用
+					this.f[2*nd+0] += -this.penalty*d*normal[0];
+					this.f[2*nd+1] += -this.penalty*d*normal[1];
+					// for visualization
+					this.colNdFlag[nd]=2;
+					this.colTriFlag[tr]=2;
+				}				
+			}
+		}
 	}
 		
 	for(var i=0; i<this.pos.length; i++){
