@@ -350,6 +350,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 		pe1 = this.pos[this.surEdge[sur][1]];
 		normalTmp = [pe1[1] - pe0[1], -(pe1[0] - pe0[0])];
 		veclen = numeric.norm2(normalTmp);
+		if(veclen===0) continue; // 法線ベクトルの長さがゼロになる場合は前回までの値を採用する
 		this.normal[sur] = numeric.div(normalTmp, veclen);
 	}
 
@@ -361,6 +362,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 		for(var sedg = 0; sedg < this.sndToSur[snd].length; ++sedg) 
 			ndNormalTmp = numeric.add(ndNormalTmp, this.normal[this.sndToSur[snd][sedg]]);
 		ndNmNorm = numeric.norm2(ndNormalTmp);
+		if(ndNmNorm===0)continue; // 法線ベクトルの長さがゼロになる場合は前回までの値を採用する
 		this.ndNormal[snd] = numeric.div(ndNormalTmp, ndNmNorm);
 	}
 
@@ -418,6 +420,9 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 				// くいこみ量の計算
 				qd = numeric.sub(q, pe0);
 				d = numeric.dot(normal,qd);
+				if(isNaN(normal[0])) alert("nm0");
+				if(isNaN(normal[1])) alert("nm1");
+				if(isNaN(d)) alert("nan1");
 				// 外力の設定
 				for(var vt = 0; vt < 2; vt++) {
 					this.f[2*this.surEdge[sur][vt]+0] += this.penalty*d*normal[0]*0.5;
@@ -486,7 +491,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			}
 		}
 	}
-		
+
 	for(var i=0; i<this.pos.length; i++){
 		if(nodeToDF[i] == "d"){
 			this.dlist.push(i);
