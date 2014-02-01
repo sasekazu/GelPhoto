@@ -28,8 +28,6 @@ function FEM(initpos, tri){
 	this.colNdFlag = numeric.rep([this.posNum],0);	// for visualization
 	this.colTriFlag = numeric.rep([this.triNum],0);
 	this.normal = [];	// 表面エッジの法線ベクトル
-	this.center = [];	// for visualization
-	this.triRad = [];	// for visualization
 
 
 	this.makeSurface();
@@ -328,90 +326,9 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 		this.normal[sur] = numeric.div(normalTmp, veclen);
 	}
 
-	console.log("tem");
-
-	// 内接球を用いた内外判定によるペナルティ法
-	if(selfCollisionFlag) {
-		var nd;		// 着目するノード番号
-		var tr;		// 着目する三角形番号
-		var area;	// 三角形の面積
-		var p0,p1,p2;	// 三角形の頂点位置ベクトル
-		var pe0,pe1;	// エッジの頂点位置ベクトル
-		var q;			// 着目するノードの位置ベクトル
-		var qc;			// 着目するノードの三角形中心からの相対位置ベクトル
-		var tmp;		// 各種2次元ベクトルの一時保管
-		var a,b,c;		// 辺の長さ
-		var ppp;		// for calc area
-		var r;			// 内接円の半径
-		var center;		// 三角形の重心ベクトル
-		var qd;			// エッジ0から着目するノードへの相対位置ベクトル
-		var d;			// くいこみ量
-		var normal;
-		// for visualization
-		this.colNdFlag = numeric.rep([this.posNum],0);
-		this.colTriFlag = numeric.rep([this.tri.length],0);
-		this.center = numeric.rep([this.tri.length,2],0);
-		this.triRad = numeric.rep([this.tri.length],0);
-		for(var sur = 0; sur < this.surEdge.length; sur++) {
-			tr = this.surToTri[sur];
-			// 内接円の半径を求める
-			p0 = this.pos[this.tri[tr][0]];
-			p1 = this.pos[this.tri[tr][1]];
-			p2 = this.pos[this.tri[tr][2]];
-			ppp = [[1,p0[0],p0[1]], [1,p1[0],p1[1]], [1,p2[0],p2[1]]];
-			area = Math.abs(0.5 * numeric.det(ppp));
-			if(area===0)continue;
-			tmp = numeric.sub(p2,p1);
-			a = numeric.norm2(tmp);
-			tmp = numeric.sub(p0,p2);
-			b = numeric.norm2(tmp);
-			tmp = numeric.sub(p1,p0);
-			c = numeric.norm2(tmp);
-			r = 2.0/(a+b+c)*area;
-			// 三角形の内心を求める
-			center = [0,0];
-			center[0] = (a*p0[0]+b*p1[0]+c*p2[0])/(a+b+c);
-			center[1] = (a*p0[1]+b*p1[1]+c*p2[1])/(a+b+c);
-			// エッジの法線ベクトルを求める
-			pe0 = this.pos[this.surEdge[sur][0]];
-			pe1 = this.pos[this.surEdge[sur][1]];
-			// for visualization
-			this.center[tr] = numeric.clone(center);
-			this.triRad[tr] = r;
-			normal = this.normal[sur];
-
-			for(var i = 0; i < this.surNode.length; i++) {
-				// 着目するノードが三角形要素の頂点なら無視
-				nd = this.surNode[i];
-				if(this.tri[tr][0]===nd)continue;
-				if(this.tri[tr][1]===nd)continue;
-				if(this.tri[tr][2]===nd)continue;
-				// ノードの三角形内外判定
-				q = this.pos[nd];
-				qc = numeric.sub(q,center);
-				// くいこみ量の計算
-				qd = numeric.sub(q, pe0);
-				d = numeric.dot(normal,qd);
-				// 接触判定
-				if(numeric.norm2(qc) < r && d<0) {
-					// 外力の設定
-					for(var vt = 0; vt < 3; vt++) {
-						this.f[2*this.tri[tr][vt]+0] += this.penalty*d*normal[0]*0.333333333;
-						this.f[2*this.tri[tr][vt]+1] += this.penalty*d*normal[1]*0.333333333;
-					}
-					// 頂点への反作用
-					this.f[2*nd+0] += -this.penalty*d*normal[0];
-					this.f[2*nd+1] += -this.penalty*d*normal[1];
-					// for visualization 
-					this.colNdFlag[nd]=1;
-					this.colTriFlag[tr]=1;
-				}
-			}
-		}
-	}
 
 	// 三角形の内外判定によるペナルティ法
-	if(0) {
+	if(selfCollisionFlag) {
 		var nd;		// 着目するノード番号
 		var tr;		// 着目する三角形番号
 		var p0,p1,p2;	// 三角形の頂点位置ベクトル
@@ -419,17 +336,12 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 		var q;			// 着目するノードの位置ベクトル
 		var v0,v1,v2;	// 辺ベクトル
 		var q0,q1,q2;	// i番頂点からqまでの相対位置ベクトル
-		var tmp;		// 各種2次元ベクトルの一時保管
 		var normal;		// 表面エッジの法線ベクトル
 		var qd;			// エッジ0から着目するノードへの相対位置ベクトル
-		var veclen;
 		var d;			// くいこみ量
 		// for visualization
 		this.colNdFlag = numeric.rep([this.posNum],0);
 		this.colTriFlag = numeric.rep([this.tri.length],0);
-		this.center = numeric.rep([this.tri.length,2],0);
-		this.triRad = numeric.rep([this.tri.length],0);
-		this.normal = numeric.rep([this.surEdge.length,2],0);
 		for(var sur = 0; sur < this.surEdge.length; sur++) {
 			tr = this.surToTri[sur];
 			p0 = this.pos[this.tri[tr][0]];
@@ -438,19 +350,12 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			// エッジの法線ベクトルを求める
 			pe0 = this.pos[this.surEdge[sur][0]];
 			pe1 = this.pos[this.surEdge[sur][1]];
-			normal = [pe1[1]-pe0[1],-(pe1[0]-pe0[0])];
-			veclen = numeric.norm2(normal);
-			normal = numeric.div(normal,veclen);
 			// 辺ベクトルの作成
 			v0 = numeric.sub(p1,p0);
 			v20 = numeric.sub(p2,p0);
 			v1 = numeric.sub(p2,p1);
 			v2 = numeric.sub(p0,p2);
-			// for visualization
-			this.center[tr] = numeric.clone(center);
-			this.triRad[tr] = r;
-			this.normal[sur] = numeric.clone(normal);
-
+			normal = this.normal[sur];
 			for(var i = 0; i < this.surNode.length; i++) {
 				// 着目するノードが三角形要素の頂点なら無視
 				nd = this.surNode[i];
