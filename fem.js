@@ -27,9 +27,9 @@ function FEM(initpos, tri){
 	this.surNode = [];		// 表面頂点リスト
 	this.colNdFlag = numeric.rep([this.posNum],0);	// for visualization
 	this.colTriFlag = numeric.rep([this.triNum],0);
+	this.normal = [];	// 表面エッジの法線ベクトル
 	this.center = [];	// for visualization
 	this.triRad = [];	// for visualization
-	this.normal = [];	// for visualization
 
 
 	this.makeSurface();
@@ -314,9 +314,24 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			}
 		}
 	}
-	
+
+	// 法線ベクトルの作成
+	this.normal = numeric.rep([this.surEdge.length, 2], 0);
+	var pe0, pe1;	// エッジの頂点位置ベクトル
+	var veclen;
+	var normalTmp;
+	for(var sur = 0; sur < this.surEdge.length; sur++) {
+		pe0 = this.pos[this.surEdge[sur][0]];
+		pe1 = this.pos[this.surEdge[sur][1]];
+		normalTmp = [pe1[1] - pe0[1], -(pe1[0] - pe0[0])];
+		veclen = numeric.norm2(normalTmp);
+		this.normal[sur] = numeric.div(normalTmp, veclen);
+	}
+
+	console.log("tem");
+
 	// 内接球を用いた内外判定によるペナルティ法
-	if(0) {
+	if(selfCollisionFlag) {
 		var nd;		// 着目するノード番号
 		var tr;		// 着目する三角形番号
 		var area;	// 三角形の面積
@@ -329,17 +344,14 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 		var ppp;		// for calc area
 		var r;			// 内接円の半径
 		var center;		// 三角形の重心ベクトル
-		var normal;		// 表面エッジの法線ベクトル
 		var qd;			// エッジ0から着目するノードへの相対位置ベクトル
-		var veclen;
 		var d;			// くいこみ量
+		var normal;
 		// for visualization
 		this.colNdFlag = numeric.rep([this.posNum],0);
 		this.colTriFlag = numeric.rep([this.tri.length],0);
 		this.center = numeric.rep([this.tri.length,2],0);
 		this.triRad = numeric.rep([this.tri.length],0);
-		this.normal = numeric.rep([this.surEdge.length,2],0);
-
 		for(var sur = 0; sur < this.surEdge.length; sur++) {
 			tr = this.surToTri[sur];
 			// 内接円の半径を求める
@@ -363,13 +375,10 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			// エッジの法線ベクトルを求める
 			pe0 = this.pos[this.surEdge[sur][0]];
 			pe1 = this.pos[this.surEdge[sur][1]];
-			normal = [pe1[1]-pe0[1],-(pe1[0]-pe0[0])];
-			veclen = numeric.norm2(normal);
-			normal = numeric.div(normal,veclen);
 			// for visualization
 			this.center[tr] = numeric.clone(center);
 			this.triRad[tr] = r;
-			this.normal[sur] = numeric.clone(normal);
+			normal = this.normal[sur];
 
 			for(var i = 0; i < this.surNode.length; i++) {
 				// 着目するノードが三角形要素の頂点なら無視
@@ -402,7 +411,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 	}
 
 	// 三角形の内外判定によるペナルティ法
-	if(selfCollisionFlag) {
+	if(0) {
 		var nd;		// 着目するノード番号
 		var tr;		// 着目する三角形番号
 		var p0,p1,p2;	// 三角形の頂点位置ベクトル

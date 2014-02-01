@@ -123,6 +123,15 @@ $(document).ready(function () {
 		outline=new Outline();
 		mainloop();
 	}
+	// 画像が読み込めない時も実行
+	img.onerror=function(){
+		alert("画像が読み込めません");
+		// メッシュ表示モードにする
+		$("#meshCheckBox").attr("checked", true);
+		cv = new ClosedCurve(minlen);
+		outline = new Outline();
+		mainloop();
+	}
 
 
 	/////////////////////////////////////////////////////////
