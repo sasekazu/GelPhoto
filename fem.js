@@ -166,11 +166,16 @@ FEM.prototype.makeSurface = function(){
 		nd = this.surNode[snd];
 		for(var ntri=0; ntri<this.nodeToTri[nd].length; ++ntri){
 			dupFlag = false;
-			for(var edg=0; edg<this.sndToSur[snd].length; ++edg){
-				if(this.nodeToTri[nd][ntri] == this.surToTri[this.sndToSur[snd][edg]]){
-					dupFlag = true;
-					break;
+			// 着目する三角形がsurToTriの中のすべての三角形と重複がなければ
+			// 内側三角形リストに追加する
+			for(var ond = 0; ond < this.surNode.length; ++ond) {
+				for(var edg=0; edg<this.sndToSur[ond].length; ++edg){
+					if(this.nodeToTri[nd][ntri] == this.surToTri[this.sndToSur[ond][edg]]){
+						dupFlag = true;
+						break;
+					}
 				}
+				if(dupFlag)break;
 			}
 			if(!dupFlag)
 				this.sndToUnDupTri[snd].push(this.nodeToTri[nd][ntri]);

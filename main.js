@@ -99,14 +99,15 @@ $(document).ready(function () {
 	});
 
 	// 最初の画像を選択
-	img.src = "miku.png?" + new Date().getTime();
+	//img.src = "miku.png?" + new Date().getTime();
 	//img.src = "donut.jpg?" + new Date().getTime();
 	//img.src = "hachinosu.jpg?" + new Date().getTime();
+	img.src = "blue.jpg?" + new Date().getTime();
 	
 
 	// 画像が読み込まれたときに実行
 	img.onload=function () {
-		imgSc=0.48;
+		imgSc=1;
 		if(img.height<img.width) {
 			dx=0.5*(1-imgSc)*canvasWidth;
 			dy=0.5*(canvasHeight-imgSc*img.height/img.width*canvasWidth);
