@@ -393,6 +393,8 @@ $(document).ready(function () {
 		var timeDyn1 = new Date();
 		//console.log("calcDynamicDeformation " + (timeDyn1 - timeDyn0) + " [ms]");
 
+		var touchForce = physicsModel.getForce();
+
 		physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
         if(fractureFlag) {
 	        physicsModel.calcStress();
@@ -421,6 +423,7 @@ $(document).ready(function () {
 				for(var i = 0, len = physicsModel.surEdge.length; i < len; ++i) {
 					drawLine(physicsModel.pos[physicsModel.surEdge[i][0]], physicsModel.pos[physicsModel.surEdge[i][1]])
 				}
+				context.lineWidth = 1;
 			}
 		} else {
 			// 三角形の描画
@@ -522,7 +525,6 @@ $(document).ready(function () {
 				drawLine(ndNmStr, ndNmEnd);
 			}
 
-
 			// 外力ベクトルの描画
 			context.strokeStyle = 'red';
 			var fEnd;
@@ -531,9 +533,20 @@ $(document).ready(function () {
 				var scl = 10;
 				force[0] = physicsModel.f[2 * i + 0];
 				force[1] = physicsModel.f[2 * i + 1];
+				force = numeric.mul(0.05, force);
 				fEnd = numeric.add(physicsModel.pos[i], force);
 				drawLine(physicsModel.pos[i], fEnd);
 			}
+
+			// タッチ部分における外力ベクトルの描画
+			context.lineWidth = 3;
+			context.strokeStyle = 'red';
+			var tForce = [0,0];
+			for(var i = 0; i < touchForce.length; i++) {
+				tForce = numeric.mul(-0.05, touchForce[i]);
+				drawLine(mousePos[i], numeric.add(mousePos[i], tForce));
+			}
+			context.lineWidth = 1;
 		}
 
 	}

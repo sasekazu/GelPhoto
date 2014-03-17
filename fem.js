@@ -896,6 +896,19 @@ FEM.prototype.modifyPosCld = function(xmin, ymin, xmax, ymax){
 		}
 	}
 }
+
+
+FEM.prototype.getForce = function () {
+	var force = Array(this.holdNode.length);
+	for(var i=0; i<this.holdNode.length; i++){
+		force[i] = [0,0];
+		for(var j = 0; j < this.holdNode[i].length; j++) {
+			force[i][0] += this.f[2*this.holdNode[i][j]+0];
+			force[i][1] += this.f[2*this.holdNode[i][j]+1];
+		}
+	}
+	return force;
+}
 	
 
 FEM.prototype.calcStress = function () {
