@@ -64,14 +64,20 @@ function FEM(initpos, tri){
 	this.f = [];
 	this.ff = [];
 	this.ud = [];
-	this.uf = [];
+	this.uf = [];		
 	this.vf = [];
+	this.vd = [];
+	this.vdbuf = [];
 	this.Kff = [];
 	this.Kfd = [];
+	this.Kdf = [];
+	this.Kdd = [];
 	this.Mf = [];
+	this.Md = [];
 	this.xd = [];
 	this.xf = [];
 	this.fof = [];
+	this.fod = [];
 
 
 	this.maxPStress = [];
@@ -676,21 +682,11 @@ FEM.prototype.calcDeformation = function(){
 }
 
 
-FEM.prototype.divideMatrices = function () {
+FEM.prototype.divideMatrices = function (dt) {
 
 	var f = this.flist.length;
 	var d = this.dlist.length;
 			
-	this.uf = numeric.linspace(0,0,2*f);
-	for(var i=0; i<f; i++)
-		for(var j=0; j<2; j++)
-			this.uf[2*i+j] = this.pos[this.flist[i]][j] - this.initpos[this.flist[i]][j];
-		
-	this.vf = numeric.linspace(0,0,2*f);
-	for(var i=0; i<f; i++)
-		for(var j=0; j<2; j++)
-			this.vf[2*i+j] = this.Vel[2*this.flist[i]+j];
-	
 	this.Kff = numeric.rep([2*f,2*f],0);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<f; j++)
@@ -704,6 +700,20 @@ FEM.prototype.divideMatrices = function () {
 			for(var k=0; k<2; k++)
 				for(var l=0; l<2; l++)
 					this.Kfd[2*i+k][2*j+l] = this.K[2*this.flist[i]+k][2*this.dlist[j]+l];
+
+	this.Kdf = numeric.rep([2*d,2*f],0);
+	for(var i=0; i<d; i++)
+		for(var j=0; j<f; j++)
+			for(var k=0; k<2; k++)
+				for(var l=0; l<2; l++)
+					this.Kdf[2*i+k][2*j+l] = this.K[2*this.dlist[i]+k][2*this.flist[j]+l];
+	
+	this.Kdd = numeric.rep([2*d,2*d],0);
+	for(var i=0; i<d; i++)
+		for(var j=0; j<d; j++)
+			for(var k=0; k<2; k++)
+				for(var l=0; l<2; l++)
+					this.Kdd[2*i+k][2*j+l] = this.K[2*this.dlist[i]+k][2*this.dlist[j]+l];
 	
 	this.Mf = numeric.identity(2*f);
 	for(var i=0; i<f; i++){
@@ -711,11 +721,46 @@ FEM.prototype.divideMatrices = function () {
 		this.Mf[2*i+1][2*i+1] = this.mass[this.flist[i]];
 	}
 		
+	this.Md = numeric.identity(2*d);
+	for(var i=0; i<d; i++){
+		this.Md[2*i][2*i] = this.mass[this.dlist[i]];
+		this.Md[2*i+1][2*i+1] = this.mass[this.dlist[i]];
+	}
+		
+	// uf^{i}		
+	this.uf = numeric.linspace(0,0,2*f);
+	for(var i=0; i<f; i++)
+		for(var j=0; j<2; j++)
+			this.uf[2*i+j] = this.pos[this.flist[i]][j] - this.initpos[this.flist[i]][j];
+
+	// vf^{i}		
+	this.vf = numeric.linspace(0,0,2*f);
+	for(var i=0; i<f; i++)
+		for(var j=0; j<2; j++)
+			this.vf[2*i+j] = this.Vel[2*this.flist[i]+j];
+
+	// vd^{i}
+	this.vdbuf = numeric.linspace(0,0,2*d);
+	for(var i=0; i<d; i++)
+		for(var j=0; j<2; j++)
+			this.vdbuf[2*i+j] = this.Vel[2*this.dlist[i]+j];
+
+	
+	// vd^{i+1} (this.udはud^{i+1})
+	this.vd = numeric.linspace(0,0,2*d);
+	for(var i=0; i<d; i++)
+		for(var j=0; j<2; j++)
+			this.vd[2*i+j] = ( this.ud[2*i+j] + this.initpos[this.dlist[i]][j] - this.pos[this.dlist[i]][j] ) / dt;
+
+	
+
+	// xd^{i}
 	this.xd = numeric.linspace(0,0,2*d);
 	for(var i=0; i<d; i++)
 		for(var j=0; j<2; j++)
-			this.xd[2*i+j] = this.initpos[this.dlist[i]][j] + this.ud[2*i+j];
-	
+			this.xd[2*i+j] = this.pos[this.dlist[i]][j];
+
+	// xf^{i}	
 	this.xf = numeric.linspace(0,0,2*f);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
@@ -725,6 +770,11 @@ FEM.prototype.divideMatrices = function () {
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
 			this.fof[2*i+j] = this.foffset[2*this.flist[i]+j];
+
+	this.fod = numeric.linspace(0,0,2*d);
+	for(var i=0; i<d; i++)
+		for(var j=0; j<2; j++)
+			this.fod[2*i+j] = this.foffset[2*this.dlist[i]+j];
 
 }
 
@@ -737,7 +787,7 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	var d = this.dlist.length;
 
 	this.makeMatrixKSW();
-	this.divideMatrices();
+	this.divideMatrices(dt);
 	
 	var Mleft1 = numeric.mul(this.Mf,(1+this.alpha));
 	var Mleft2 = numeric.mul(this.Kff,dt*(this.beta+dt));
@@ -751,7 +801,11 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	Mright2 = numeric.sub(Mright2,this.fof);
 	Mright2 = numeric.add(Mright2,this.ff);
 	Mright2 = numeric.mul(Mright2,dt);
+	var Mright3 = numeric.mul(this.beta*dt+dt*dt, this.Kfd);
+	tmp = numeric.dot(Mright3, this.vd);
+	Mright3 = tmp;
 	var Mright = numeric.add(Mright1,Mright2);
+	Mright = numeric.add(Mright, Mright3);
 	
 	this.vf = numeric.solve(Mleft,Mright);
 
@@ -772,6 +826,49 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	for(var i=0; i<d; i++)
 		for(var j=0; j<2; j++)
 			this.pos[this.dlist[i]][j] = this.initpos[this.dlist[i]][j] + this.ud[2*i+j];
+
+	// 外力の計算
+	var tmp1, tmp2, tmp3, tmp4, tmp5;
+	var tmp23, tmp1234;
+	var tmpDot;
+	// 速度に関する項を外力計算に入れると値が
+	// 大きすぎる値になったのでコメントアウトした
+	/*
+	tmp1 = numeric.mul(dt*this.beta+dt*dt, this.Kdf);
+	tmpDot = numeric.dot(tmp, this.vf);
+	tmp1 = numeric.clone(tmpDot);
+
+	tmp2 = numeric.mul(1+dt*this.alpha, this.Md);
+
+	tmp3 = numeric.mul(dt*this.beta+dt*dt, this.Kdd);
+
+	tmp23 = numeric.add(tmp2, tmp3);
+	tmpDot = numeric.dot(tmp23, this.vd);
+	tmp23 = numeric.clone(tmpDot);
+
+	tmp4 = numeric.dot(this.Md, this.vdbuf);
+	tmp4 = numeric.neg(tmp4);
+
+	tmp1234 = numeric.add(tmp1, tmp23);
+	tmp1234 = numeric.add(tmp1234, tmp4);
+	tmp1234 = numeric.mul(tmp1234, 1/dt);
+	*/
+
+	tmp5 = numeric.dot(this.Kdf, this.xf);
+	tmp6 = numeric.dot(this.Kdd, this.xd);
+
+	var fd = numeric.add(tmp5, tmp6);
+
+	// 速度を考慮する場合は以下のコメントアウトを外す
+	// fd = numeric.add(fd, tmp1234);
+
+	fd = numeric.add(fd, this.fod);
+
+
+	for(var i=0; i<d; i++){
+		this.f[2*this.dlist[i]+0] = fd[2*i+0];
+		this.f[2*this.dlist[i]+1] = fd[2*i+1];
+	}
 }	
 
 
