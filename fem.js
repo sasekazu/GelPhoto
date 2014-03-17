@@ -233,7 +233,7 @@ FEM.prototype.makeMatrixKe = function(young, poisson, density, thickness){
     // Reの初期化
 	this.Re = new Array(TriNum);
 	for(var i=0; i<TriNum; i++){
-	    this.Re[i] = numeric.identity(6);
+	    this.Re[i] = numeric.identity(2);
 	}
 }
 
@@ -556,23 +556,23 @@ FEM.prototype.makeMatrixKSW = function(){
 			
 		
 		// 回転行列の作成
-		var ReMini = [[Math.cos(this.th[i]),-Math.sin(this.th[i])],[Math.sin(this.th[i]),Math.cos(this.th[i])]];
+		this.Re[i] = [[Math.cos(this.th[i]),-Math.sin(this.th[i])],[Math.sin(this.th[i]),Math.cos(this.th[i])]];
 		
-		for(var j=0; j<3; j++)
-			for(var k=0; k<2; k++)
-				for(var l=0; l<2; l++)
-				    this.Re[i][2*j+k][2*j+l]=ReMini[k][l];
 
         // StiffnessWarpingの効果を無効にしたいときは
         // コメントアウトを外して回転行列を単位行列にする
-        //this.Re[i] = numeric.identity(6);
-
-		var ReInv=numeric.transpose(this.Re[i]);
+        //this.Re[i] = numeric.identity(2);
 
 
 		// 要素剛性マトリクス作成
-		var KeTmp = numeric.dot(this.Ke[i],ReInv);
-		KeTmp = numeric.dot(this.Re[i],KeTmp);
+		var KeTmp = numeric.rep([6,6],0);
+		for(var bi=0; bi<3; bi++)
+			for(var bj=0; bj<3; bj++)
+				for(var j = 0; j < 2; j++) 
+					for(var k = 0; k < 2; k++) 
+						for(var l = 0; l < 2; l++) 
+							for(var m = 0; m < 2; m++) 
+								KeTmp[2 * bi + j][2 * bj + k] += this.Re[i][j][l]*this.Ke[i][2*bi+l][2*bj+m]*this.Re[i][k][m];
 
 
 		// 全体剛性マトリクス作成
@@ -583,7 +583,14 @@ FEM.prototype.makeMatrixKSW = function(){
 						this.K[2*this.tri[i][j]+l][2*this.tri[i][k]+m] += KeTmp[2*j+l][2*k+m];
 		
 		// 力オフセット作成のための回転剛性マトリクス作成
-		var RKeTmp = numeric.dot(this.Re[i],this.Ke[i]);
+		var RKeTmp = numeric.rep([6,6],0);
+		for(var bi = 0; bi < 3; bi++) 
+			for(var bj = 0; bj < 3; bj++) 
+				for(var j = 0; j < 2; j++) 
+					for(var k = 0; k < 2; k++) 
+						for(var l = 0; l < 2; l++) 
+							RKeTmp[2*bi+j][2*bj+k] += this.Re[i][j][l] * this.Ke[i][2*bi+l][2*bj+k];
+
 		for(var j=0; j<3; j++)
 			for(var k=0; k<3; k++)
 				for(var l=0; l<2; l++)
@@ -789,7 +796,12 @@ FEM.prototype.calcStress = function () {
             x0e[2*j] = this.initpos[this.tri[i][j]][0];
             x0e[2*j+1] = this.initpos[this.tri[i][j]][1];
         }
-        var ReInv = numeric.transpose(this.Re[i]);
+        //var ReInv = numeric.transpose(this.Re[i]);
+		var ReInv = numeric.rep([6,6],0);
+		for(var j=0; j<3; j++)
+			for(var k=0; k<2; k++)
+				for(var l = 0; l < 2; l++) 
+					ReInv[2*j+k][2*j+l] = this.Re[i][l][k];
         var strain = numeric.dot(ReInv,xe);
         strain = numeric.sub(strain,x0e);
         var tmp = numeric.dot(this.De[i],this.Be[i]);
