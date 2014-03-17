@@ -4,6 +4,7 @@
 /// <reference path="outline.js" />
 /// <reference path="delaunay.js" />
 /// <reference path="fem.js" />
+/// <reference path="vibrate.js" />
 
 
 $(document).ready(function () {
@@ -394,6 +395,14 @@ $(document).ready(function () {
 		//console.log("calcDynamicDeformation " + (timeDyn1 - timeDyn0) + " [ms]");
 
 		var touchForce = physicsModel.getForce();
+		var forceIntensity = 0;
+		for(var i = 0; i < touchForce.length; i++) {
+			forceIntensity += numeric.norm2(touchForce[i]);
+		}
+		console.log(forceIntensity);
+		var fMax = 1000;
+		var vibVal = Math.round(forceIntensity/fMax);
+		vibratePulse(vibVal);
 
 		physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
         if(fractureFlag) {
