@@ -524,32 +524,20 @@ FEM.prototype.makeMatrixKSW = function(){
         if(this.removedFlag[i]) continue;
 		
 		// 要素の回転角度取得
-		var center0 = [0,0];
-		for(var j=0; j<3; j++)
-			center0 = numeric.add(center0, this.initpos[this.tri[i][j]]);
-			
-		center0 = numeric.mul(center0, 0.333333333333);
-		
-		var center = [0,0];
-		for(var j=0; j<3; j++)
-			center = numeric.add(center, this.pos[this.tri[i][j]]);
-			
-		center = numeric.mul(center, 0.333333333333);
-		
 		var q = numeric.rep([3,2],0);
-		for(var j=0; j<3; j++)
-			q[j] = numeric.sub(this.initpos[this.tri[i][j]],center0)
+		for(var j=0; j<2; j++)
+			q[j] = numeric.sub(this.initpos[this.tri[i][j+1]],this.initpos[this.tri[i][0]]);
 		
 		var p = numeric.rep([3,2],0);
-		for(var j=0; j<3; j++)
-			p[j] = numeric.sub(this.pos[this.tri[i][j]],center)
+		for(var j=0; j<2; j++)
+			p[j] = numeric.sub(this.pos[this.tri[i][j+1]], this.pos[this.tri[i][0]]);
 		
 		var A = 0;
-		for(var j=0; j<3; j++)
+		for(var j=0; j<2; j++)
 			A += q[j][1]*p[j][0] - q[j][0]*p[j][1];
 		
 		var B = 0;
-		for(var j=0; j<3; j++)
+		for(var j=0; j<2; j++)
 			B += q[j][0]*p[j][0] + q[j][1]*p[j][1];
 
 		// 回転角度の計算
