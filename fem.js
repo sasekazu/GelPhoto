@@ -64,6 +64,16 @@ function FEM(initpos, tri){
 	this.f = [];
 	this.ff = [];
 	this.ud = [];
+	this.uf = [];
+	this.vf = [];
+	this.Kff = [];
+	this.Kfd = [];
+	this.Mf = [];
+	this.xd = [];
+	this.xf = [];
+	this.fof = [];
+
+
 	this.maxPStress = [];
 	this.fixNode = []; // 固定ノードリスト: パブリックアクセスで外部から設定する
     // 破壊に関するメンバ変数
@@ -666,91 +676,98 @@ FEM.prototype.calcDeformation = function(){
 }
 
 
-
-// 境界条件を設定して変形計算を行う
-// 境界条件は y=0 を固定，ノード番号spNodeに強制変位disp[2]を与える
-FEM.prototype.calcDynamicDeformation = function(dt){
-
-	// Stiffness Warping法の場合、剛性マトリクスを修正する
-	this.makeMatrixKSW();
+FEM.prototype.divideMatrices = function () {
 
 	var f = this.flist.length;
 	var d = this.dlist.length;
 			
-	var uf = numeric.linspace(0,0,2*f);
+	this.uf = numeric.linspace(0,0,2*f);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
-			uf[2*i+j] = this.pos[this.flist[i]][j] - this.initpos[this.flist[i]][j];
+			this.uf[2*i+j] = this.pos[this.flist[i]][j] - this.initpos[this.flist[i]][j];
 		
-	var vf = numeric.linspace(0,0,2*f);
+	this.vf = numeric.linspace(0,0,2*f);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
-			vf[2*i+j] = this.Vel[2*this.flist[i]+j];
+			this.vf[2*i+j] = this.Vel[2*this.flist[i]+j];
 	
-	var Kff = numeric.rep([2*f,2*f],0);
+	this.Kff = numeric.rep([2*f,2*f],0);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<f; j++)
 			for(var k=0; k<2; k++)
 				for(var l=0; l<2; l++)
-					Kff[2*i+k][2*j+l] = this.K[2*this.flist[i]+k][2*this.flist[j]+l];
+					this.Kff[2*i+k][2*j+l] = this.K[2*this.flist[i]+k][2*this.flist[j]+l];
 	
-	var Kfd = numeric.rep([2*f,2*d],0);
+	this.Kfd = numeric.rep([2*f,2*d],0);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<d; j++)
 			for(var k=0; k<2; k++)
 				for(var l=0; l<2; l++)
-					Kfd[2*i+k][2*j+l] = this.K[2*this.flist[i]+k][2*this.dlist[j]+l];
+					this.Kfd[2*i+k][2*j+l] = this.K[2*this.flist[i]+k][2*this.dlist[j]+l];
 	
-	var M = numeric.identity(2*f);
+	this.Mf = numeric.identity(2*f);
 	for(var i=0; i<f; i++){
-		M[2*i][2*i] = this.mass[this.flist[i]];
-		M[2*i+1][2*i+1] = this.mass[this.flist[i]];
+		this.Mf[2*i][2*i] = this.mass[this.flist[i]];
+		this.Mf[2*i+1][2*i+1] = this.mass[this.flist[i]];
 	}
 		
-	var xd = numeric.linspace(0,0,2*d);
+	this.xd = numeric.linspace(0,0,2*d);
 	for(var i=0; i<d; i++)
 		for(var j=0; j<2; j++)
-			xd[2*i+j] = this.initpos[this.dlist[i]][j] + this.ud[2*i+j];
+			this.xd[2*i+j] = this.initpos[this.dlist[i]][j] + this.ud[2*i+j];
 	
-	var xf = numeric.linspace(0,0,2*f);
+	this.xf = numeric.linspace(0,0,2*f);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
-			xf[2*i+j] = this.pos[this.flist[i]][j];
+			this.xf[2*i+j] = this.pos[this.flist[i]][j];
 
-	var fof = numeric.linspace(0,0,2*f);
+	this.fof = numeric.linspace(0,0,2*f);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
-			fof[2*i+j] = this.foffset[2*this.flist[i]+j];
+			this.fof[2*i+j] = this.foffset[2*this.flist[i]+j];
+
+}
+
+
+// 境界条件を設定して変形計算を行う
+// 境界条件は y=0 を固定，ノード番号spNodeに強制変位disp[2]を与える
+FEM.prototype.calcDynamicDeformation = function(dt){
 	
-	var Mleft1 = numeric.mul(M,(1+this.alpha));
-	var Mleft2 = numeric.mul(Kff,dt*(this.beta+dt));
+	var f = this.flist.length;
+	var d = this.dlist.length;
+
+	this.makeMatrixKSW();
+	this.divideMatrices();
+	
+	var Mleft1 = numeric.mul(this.Mf,(1+this.alpha));
+	var Mleft2 = numeric.mul(this.Kff,dt*(this.beta+dt));
 	var Mleft = numeric.add(Mleft1,Mleft2);
 
-	var Mright1 = numeric.dot(M,vf);
-	var Mright2 = numeric.dot(Kff,xf);
+	var Mright1 = numeric.dot(this.Mf,this.vf);
+	var Mright2 = numeric.dot(this.Kff,this.xf);
 	Mright2 = numeric.neg(Mright2);
-	var tmp = numeric.dot(Kfd,xd);
+	var tmp = numeric.dot(this.Kfd,this.xd);
 	Mright2 = numeric.sub(Mright2,tmp);
-	Mright2 = numeric.sub(Mright2,fof);
+	Mright2 = numeric.sub(Mright2,this.fof);
 	Mright2 = numeric.add(Mright2,this.ff);
 	Mright2 = numeric.mul(Mright2,dt);
 	var Mright = numeric.add(Mright1,Mright2);
 	
-	vf = numeric.solve(Mleft,Mright);
+	this.vf = numeric.solve(Mleft,Mright);
 
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
-			this.Vel[2*this.flist[i]+j]=vf[2*i+j];
+			this.Vel[2*this.flist[i]+j]=this.vf[2*i+j];
 
 	for(var i=0; i<d; i++)
 		for(var j=0; j<2; j++)
 			this.Vel[2*this.dlist[i]+j]=(this.ud[2*i+j]-(this.pos[this.dlist[i]][j]-this.initpos[this.dlist[i]][j]))/dt;
 
-	var duf = numeric.mul(dt,vf);
-	uf = numeric.add(uf,duf);
+	var duf = numeric.mul(dt,this.vf);
+	this.uf = numeric.add(this.uf,duf);
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
-			this.pos[this.flist[i]][j] = this.initpos[this.flist[i]][j] + uf[2*i+j];
+			this.pos[this.flist[i]][j] = this.initpos[this.flist[i]][j] + this.uf[2*i+j];
 	
 	for(var i=0; i<d; i++)
 		for(var j=0; j<2; j++)
