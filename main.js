@@ -15,6 +15,9 @@ $(document).ready(function () {
 	var canvasWidth = canvas.width();
 	var canvasHeight = canvas.height();
 
+	// 基本的にwindow sizeは変えないことにする
+	// タブレット版は変えたほうが良いかも
+	/*
 	$(window).resize(resizeCanvas);
 	function resizeCanvas(){
 		canvas.attr("width", $(window).get(0).innerWidth*0.9);
@@ -23,6 +26,7 @@ $(document).ready(function () {
 		canvasHeight = canvas.height();
 	};
 	resizeCanvas();	
+	*/
 
 	
 	
@@ -86,7 +90,6 @@ $(document).ready(function () {
 				// 画像以外の変数の初期化
 				state="drawOutLine";
 				console.log("area "+(dw*dh));
-				minlen=(dw+dh)*0.04;	// 0.04はマジックナンバー
 				cv=new ClosedCurve(minlen);
 				outline=new Outline();
 				mainloop();
@@ -119,7 +122,6 @@ $(document).ready(function () {
 			dw=imgSc*canvasHeight*img.width/img.height;
 			dh=imgSc*canvasHeight;
 		}
-		minlen=(dw+dh)*0.05;	// 0.05はマジックナンバー
 		cv=new ClosedCurve(minlen);
 		outline=new Outline();
 		mainloop();
@@ -379,9 +381,10 @@ $(document).ready(function () {
         var fractureFlag = $('#fractureCheckBox').is(':checked');
         var meshFlag = $('#meshCheckBox').is(':checked');
         var dataFlag = $('#dataCheckBox').is(':checked');
+		var selfCldFlag = $('#selfCollisionCheckBox').is(':checked');
 
 		var timeSetB0 = new Date();
-		physicsModel.setBoundary(clickState, mousePos, gravityFlag, true);		
+		physicsModel.setBoundary(clickState, mousePos, gravityFlag, selfCldFlag);		
 		var timeSetB1 = new Date();
 		//console.log("setBoundary " + (timeSetB1-timeSetB0) + " [ms]");
 
@@ -404,18 +407,21 @@ $(document).ready(function () {
 
 		if(meshFlag){
 			// メッシュの描画
-			context.strokeStyle = 'gray';
+			context.strokeStyle = 'black';
+			context.fillStyle = 'pink';
 			for(var i = 0, len = physicsModel.tri.length; i < len; ++i) {
 				if(physicsModel.removedFlag[i]) continue;
 				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+				drawTri(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 			}
-			// 表面エッジの描画
-			context.lineWidth = 3;
-			context.strokeStyle = 'black';
-			for(var i = 0, len = physicsModel.surEdge.length; i < len; ++i) {
-				drawLine(physicsModel.pos[physicsModel.surEdge[i][0]], physicsModel.pos[physicsModel.surEdge[i][1]])
+			if(selfCldFlag) {
+				// 表面エッジの描画
+				context.lineWidth = 3;
+				context.strokeStyle = 'black';
+				for(var i = 0, len = physicsModel.surEdge.length; i < len; ++i) {
+					drawLine(physicsModel.pos[physicsModel.surEdge[i][0]], physicsModel.pos[physicsModel.surEdge[i][1]])
+				}
 			}
-			context.lineWidth = 1;
 		} else {
 			// 三角形の描画
 			var color = 'rgb(0,0,0)';

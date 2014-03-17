@@ -14,7 +14,7 @@
         <script type="text/javascript" src="main.js"></script>    
     </head>
     <body>
-    	<canvas id="mViewCanvas" width="700" height="600">
+    	<canvas id="mViewCanvas" width="800" height="500">
     	</canvas>
         <div>
             <input id="resetButton" value="リセット" type="button" />
@@ -24,7 +24,8 @@
         <div>
             <input id="fixButton" value="固定領域選択" type="button" />
             <input id="freeButton" value="全固定解除" type="button" />
-            <label><input id="gravityCheckBox" type="checkbox">重力</label>       	
+            <label><input id="gravityCheckBox" type="checkbox">重力</label>
+			<label><input id="selfCollisionCheckBox" type="checkbox" /> 自己接触</label>       	
             <label><input id="fractureCheckBox" type="checkbox">破壊</label><br />
             <label><input id="meshCheckBox" type="checkbox">メッシュ表示</label><br />
 			<label><input id="dataCheckBox" type="checkbox">データ可視化</label><br />
@@ -36,6 +37,7 @@
 				1. マウスドラッグで閉曲線を書く。<br />
 			    2. 「メッシュ生成」をクリック。<br />
 				3. 「物理計算」をクリック。マウスドラッグで触る。<br />
+				※自己接触 and 破壊は未対応です。
             </p>
         </div>
 </body>
