@@ -399,8 +399,8 @@ $(document).ready(function () {
 		for(var i = 0; i < touchForce.length; i++) {
 			forceIntensity += numeric.norm2(touchForce[i]);
 		}
-		console.log(forceIntensity);
-		var fMax = 1000;
+		//console.log(forceIntensity);
+		var fMax = 10000;
 		var vibVal = Math.round(forceIntensity/fMax);
 		vibratePulse(vibVal);
 
