@@ -47,7 +47,7 @@ function FEM(initpos, tri){
 	this.mass = [];     // 節点の等価質量
 	this.alpha = 0.02;  // Mに作用するレイリー減衰のパラメータ
 	this.beta = 0.01;    // Kに作用するレイリー減衰のパラメータ
-	this.gravity = 100;
+	this.gravity = { x: 0, y: 100 };
 
 	this.penalty = 100;	// ペナルティ法による自己接触の係数
 
@@ -339,10 +339,13 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			nodeToDF[i] = "d";
 		}else if(nodeToDF[i]!="d"){
 			this.f[2*i] = 0;
-			if(gravityFlag)
-				this.f[2*i+1] = this.gravity * this.mass[i];
-			else
+			if(gravityFlag){
+				this.f[2*i+0] = this.gravity.x * this.mass[i];
+				this.f[2*i+1] = this.gravity.y * this.mass[i];
+			} else {
+				this.f[2*i+0] = 0;
 				this.f[2*i+1] = 0;
+			}
 			
 			nodeToDF[i] = "f";
 		}

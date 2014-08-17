@@ -7,6 +7,9 @@
 /// <reference path="vibrate.js" />
 
 
+var gravity = {x:0, y:0}; // 重力加速度[G]
+
+
 $(document).ready(function () {
 
 	// 2dコンテキストを取得
@@ -383,6 +386,13 @@ $(document).ready(function () {
         var meshFlag = $('#meshCheckBox').is(':checked');
         var dataFlag = $('#dataCheckBox').is(':checked');
 		var selfCldFlag = $('#selfCollisionCheckBox').is(':checked');
+
+		// 重力加速度の更新
+		// PCでは取得した値がゼロになるので、その場合は更新しない
+		if(gravity.x != 0 && gravity.y != 0) {
+			physicsModel.gravity.x = -gravity.x*30;
+			physicsModel.gravity.y =  gravity.y*30;
+		}
 
 		var timeSetB0 = new Date();
 		physicsModel.setBoundary(clickState, mousePos, gravityFlag, selfCldFlag);		
@@ -848,3 +858,10 @@ $(document).ready(function () {
 	
 } );
 
+
+
+window.addEventListener("devicemotion", function(event1){
+    gravity.x = event1.accelerationIncludingGravity.x;
+    gravity.y = event1.accelerationIncludingGravity.y;
+}, true);
+             
