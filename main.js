@@ -379,6 +379,7 @@ $(document).ready(function () {
 	//////////////////////////////////////////////////////////
 	//////  変形計算の処理
 	//////////////////////////////////////////////////////
+	var colFlagBuf = false;
 	function physicsFunc() {
 
 		var gravityFlag = $('#gravityCheckBox').is(':checked');
@@ -386,6 +387,7 @@ $(document).ready(function () {
         var meshFlag = $('#meshCheckBox').is(':checked');
         var dataFlag = $('#dataCheckBox').is(':checked');
 		var selfCldFlag = $('#selfCollisionCheckBox').is(':checked');
+		var audioFlag = $('#audioCheckBox').is(':checked');
 
 		// 重力加速度の更新
 		// PCでは取得した値がゼロになるので、その場合は更新しない
@@ -414,7 +416,16 @@ $(document).ready(function () {
 		var vibVal = Math.round(forceIntensity/fMax);
 		vibratePulse(vibVal);
 
-		physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
+
+		var colFlagNow = physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
+
+		// 音声再生
+		// 壁にぶつかったとき（接触無から接触有に切り替わった時）に再生
+		if(audioFlag && colFlagNow && !colFlagBuf) {
+			document.getElementById("puyon1").play();
+		}
+		colFlagBuf = colFlagNow;
+
         if(fractureFlag) {
 	        physicsModel.calcStress();
         	physicsModel.removeElement();
@@ -576,7 +587,7 @@ $(document).ready(function () {
 		
 	// リセットボタン
 	$("#resetButton").click(function () {
-        cv = new ClosedCurve(minlen);
+		cv = new ClosedCurve(minlen);
         outline = new Outline();
         state = "drawOutLine";
 	});
