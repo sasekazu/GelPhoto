@@ -390,8 +390,15 @@ $(document).ready(function () {
 		var audioFlag = $('#audioCheckBox').is(':checked');
 
 		// 重力加速度の更新
-		// PCでは取得した値がゼロになるので、その場合は更新しない
-		if(gravity.x != 0 && gravity.y != 0) {
+		// PCでは取得した値が下のようになるので、その場合は更新しない
+		// chrome: null, ie, firefox: 0
+		if(!
+			(
+			(gravity.x == 0 && gravity.y == 0) 
+			||
+			(gravity.x == null && gravity.y == null)
+			)
+		){
 			physicsModel.gravity.x = -gravity.x*30;
 			physicsModel.gravity.y =  gravity.y*30;
 		}
@@ -412,9 +419,11 @@ $(document).ready(function () {
 			forceIntensity += numeric.norm2(touchForce[i]);
 		}
 		//console.log(forceIntensity);
+		/*		
 		var fMax = 10000;
 		var vibVal = Math.round(forceIntensity/fMax);
 		vibratePulse(vibVal);
+		*/
 
 
 		var colFlagNow = physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
@@ -666,8 +675,14 @@ $(document).ready(function () {
 		clickState = "Down";
 
         // ホールドノードの決定
-        if(state == "physics")
-    		physicsModel.selectHoldNodes(mousePos);
+		if(state == "physics") {
+			var selected = physicsModel.selectHoldNodes(mousePos);
+			// 音声再生
+			var audioFlag = $('#audioCheckBox').is(':checked');
+			if(audioFlag && selected) {
+				document.getElementById("nyu1").play();
+			}
+		}
 	}
 	
 	// クリックまたはタッチのムーブに対する処理

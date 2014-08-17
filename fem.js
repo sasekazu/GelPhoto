@@ -273,6 +273,8 @@ FEM.prototype.makeMatrixK = function(){
 // クリック時の処理
 FEM.prototype.selectHoldNodes = function(mousePos){	
 
+	var selectedFlag = false;
+
 	this.mousePosClick = new Array(mousePos.length);
 	for(var i=0; i<mousePos.length; i++){
 		this.mousePosClick[i] = new Array(2);
@@ -302,17 +304,20 @@ FEM.prototype.selectHoldNodes = function(mousePos){
 				this.uClick[cl][2*i] = this.pos[i][0]-this.initpos[i][0];
 				this.uClick[cl][2*i+1] = this.pos[i][1]-this.initpos[i][1];
 				this.holdNode[cl].push(i);
+				selectedFlag = true;
 			}
 		}
 	}
+	return selectedFlag;
 }
 
 
 // 境界条件の設定
 FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfCollisionFlag){
 	
-	if(mousePos.length != this.holdNode.length)
+	if(mousePos.length != this.holdNode.length) {
 		this.selectHoldNodes(mousePos);
+	}
 	
 	this.dlist = [];
 	this.flist = [];
