@@ -87,6 +87,7 @@ ClosedCurve.prototype.addPoint = function (pos) {
 	if (this.endpos.length == 0) {
 		this.endpos[0] = pos[0];
 		this.endpos[1] = pos[1];
+		// console.log("cv.addPoint([ " + pos[0] + "," + pos[1] + " ] );");
 	}
     // すでに閉じてる場合は何もしない
 	else if (this.closedFlag) {
@@ -100,6 +101,7 @@ ClosedCurve.prototype.addPoint = function (pos) {
 		    var ls = new LineSeg(this.endpos, pos);
 		    this.lines.push(ls);
 		    this.endpos = pos;
+			// console.log("cv.addPoint([ " + pos[0] + "," + pos[1] + " ] );");
 		} else {
             return;
 		}

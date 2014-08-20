@@ -132,6 +132,7 @@ $(document).ready(function () {
 	
 
 	// 画像が読み込まれたときに実行
+	var firstFlag = true;
 	img.onload=function () {
 		imgSc=1;
 		if(img.height<img.width) {
@@ -147,6 +148,10 @@ $(document).ready(function () {
 		}
 		cv=new ClosedCurve(minlen);
 		outline=new Outline();
+		if(firstFlag) {
+			mikuMesh();
+			firstFlag = false;
+		}
 		mainloop();
 	}
 	// 画像が読み込めない時も実行
@@ -159,7 +164,109 @@ $(document).ready(function () {
 		mainloop();
 	}
 
+	// ミクの輪郭を切る関数
+	function mikuMesh() {
+		outline=new Outline();
+	    cv=new ClosedCurve(minlen);
 
+		cv.addPoint([ 292,81 ] );
+		cv.addPoint([ 262,85 ] );
+		cv.addPoint([ 233,95 ] );
+		cv.addPoint([ 206,109 ] );
+		cv.addPoint([ 184,130 ] );
+		cv.addPoint([ 178,161 ] );
+		cv.addPoint([ 174,191 ] );
+		cv.addPoint([ 173,224 ] );
+		cv.addPoint([ 173,254 ] );
+		cv.addPoint([ 176,285 ] );
+		cv.addPoint([ 181,315 ] );
+		cv.addPoint([ 191,344 ] );
+		cv.addPoint([ 209,368 ] );
+		cv.addPoint([ 236,386 ] );
+		cv.addPoint([ 266,393 ] );
+		cv.addPoint([ 296,401 ] );
+		cv.addPoint([ 326,404 ] );
+		cv.addPoint([ 357,400 ] );
+		cv.addPoint([ 386,391 ] );
+		cv.addPoint([ 416,381 ] );
+		cv.addPoint([ 441,364 ] );
+		cv.addPoint([ 454,336 ] );
+		cv.addPoint([ 459,305 ] );
+		cv.addPoint([ 468,275 ] );
+		cv.addPoint([ 471,245 ] );
+		cv.addPoint([ 460,216 ] );
+		cv.addPoint([ 450,186 ] );
+		cv.addPoint([ 438,156 ] );
+		cv.addPoint([ 423,130 ] );
+		cv.addPoint([ 403,106 ] );
+		cv.addPoint([ 376,90 ] );
+		cv.addPoint([ 347,81 ] );
+		cv.addPoint([ 315,80 ] );
+		cv.addPoint([ 285,81 ] );
+
+
+	    outline.addClosedLine(cv);
+
+	    mesh=new DelaunayGen(outline, minlen);
+	    while(mesh.addPoint()) {
+	        ;
+	    };
+	    mesh.meshGen();
+	    for(var i=0; i<20; ++i)
+	        mesh.laplacianSmoothing();
+
+		// 物理モデルの初期化をメッシュ完成直後に行う
+	    //physicsModel = new FEMSparse(mesh.dPos, mesh.tri);
+	    physicsModel = new FEM(mesh.dPos, mesh.tri, outline);
+	    physicsModel.gripRad=minlen;
+		mikuFix();
+	    state="physics";
+	    console.log("posNum "+physicsModel.pos.length);
+	    console.log("triNum "+physicsModel.tri.length);
+	}
+
+	// ミクの固定点を設定する関数
+	function mikuFix() {
+		physicsModel.fixNode.push(0);
+		physicsModel.fixNode.push(1);
+		physicsModel.fixNode.push(2);
+		physicsModel.fixNode.push(3);
+		physicsModel.fixNode.push(4);
+		physicsModel.fixNode.push(5);
+		physicsModel.fixNode.push(6);
+		physicsModel.fixNode.push(25);
+		physicsModel.fixNode.push(26);
+		physicsModel.fixNode.push(27);
+		physicsModel.fixNode.push(28);
+		physicsModel.fixNode.push(29);
+		physicsModel.fixNode.push(30);
+		physicsModel.fixNode.push(31);
+		physicsModel.fixNode.push(32);
+		physicsModel.fixNode.push(33);
+		physicsModel.fixNode.push(34);
+		physicsModel.fixNode.push(35);
+		physicsModel.fixNode.push(36);
+		physicsModel.fixNode.push(37);
+		physicsModel.fixNode.push(38);
+		physicsModel.fixNode.push(39);
+		physicsModel.fixNode.push(40);
+		physicsModel.fixNode.push(41);
+		physicsModel.fixNode.push(42);
+		physicsModel.fixNode.push(43);
+		physicsModel.fixNode.push(44);
+		physicsModel.fixNode.push(45);
+		physicsModel.fixNode.push(46);
+		physicsModel.fixNode.push(47);
+		physicsModel.fixNode.push(48);
+		physicsModel.fixNode.push(49);
+		physicsModel.fixNode.push(50);
+		physicsModel.fixNode.push(51);
+		physicsModel.fixNode.push(52);
+		physicsModel.fixNode.push(53);
+		physicsModel.fixNode.push(15);
+		physicsModel.fixNode.push(16);
+		physicsModel.fixNode.push(17);	
+	}
 
 	/////////////////////////////////////////////////////////
 	/////////　メインの処理
@@ -209,8 +316,9 @@ $(document).ready(function () {
                             }
                         }
                         // 交差がなければ輪郭に追加する
-                        if(!intFlag)
+                        if(!intFlag) {
     	                    outline.addClosedLine(cv);
+                        }
 	                    drawingFlag = false;
                         // 作業用の閉曲線インスタンスを初期化
                         cv = new ClosedCurve(minlen);
@@ -291,8 +399,9 @@ $(document).ready(function () {
 
 		switch (clickState) {
 			case "Down":
-				if(!dragFlagf) 
+				if(!dragFlagf) {
 					clickPosf=numeric.clone(mousePos[0]);
+				}
 				
 				dragFlagf=true;
 
@@ -303,8 +412,10 @@ $(document).ready(function () {
 					for(var i=0; i<physicsModel.pos.length; ++i) {
 						sub1=(physicsModel.pos[i][0]-clickPosf[0])*(physicsModel.pos[i][0]-mousePos[0][0]);
 						sub2=(physicsModel.pos[i][1]-clickPosf[1])*(physicsModel.pos[i][1]-mousePos[0][1]);
-						if(sub1<=0 && sub2<=0)
+						if(sub1 <= 0 && sub2 <= 0) {
 							physicsModel.fixNode.push(i);
+							console.log("pyhicsModel.fixNode.push(" + i + ");");
+						}
 					}
 					clickPosf=[];
 				}
@@ -376,8 +487,9 @@ $(document).ready(function () {
 		var color='rgb(100, 100, 100)';
 		context.strokeStyle=color;
 		context.fillStyle=color;
-		for(var i=0; i<physicsModel.pos.length; ++i) 
+		for(var i = 0; i < physicsModel.pos.length; ++i) {
 			drawCircle(physicsModel.pos[i], 3);
+		}
 
 		// 固定点の描画
 		var color='rgb(200, 0, 0)';
