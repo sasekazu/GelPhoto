@@ -92,7 +92,7 @@ function FEM(initpos, tri){
 	this.holdNode = [];
 	this.mousePosClick = [];
 	this.uClick = []; // setBoundaryのためのメンバ, クリック時のUベクトル
-	this.gripRad = 50; // setBoudaryにおける周辺拘束領域の半径
+	this.gripRad = 30; // setBoudaryにおける周辺拘束領域の半径
 }
 
 
@@ -314,6 +314,8 @@ FEM.prototype.selectHoldNodes = function(mousePos){
 
 // 境界条件の設定
 FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfCollisionFlag){
+
+	var touchFlag = false; // return value
 	
 	if(mousePos.length != this.holdNode.length) {
 		this.selectHoldNodes(mousePos);
@@ -365,6 +367,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 				u[2*nd]   = this.uClick[cl][2*nd]+mousePos[cl][0]-this.mousePosClick[cl][0];
 				u[2*nd+1] = this.uClick[cl][2*nd+1]+mousePos[cl][1]-this.mousePosClick[cl][1];
 				nodeToDF[nd] = "d";
+				touchFlag = true;
 			}
 		}
 	}
@@ -532,6 +535,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 			this.ff.push(this.f[2*i+1]);
 		}
 	}
+	return touchFlag;
 }
 
 

@@ -43,7 +43,7 @@ $(document).ready(function () {
 
     // アウトライン作成用変数
     var outline = new Outline();
-    var minlen=40;
+    var minlen=30;
 	var cv;
     var drawingFlag = true;    // 書き終わった後にクリックしなおしてから次の描画を始めるためのフラグ
 
@@ -63,6 +63,11 @@ $(document).ready(function () {
 	//////////////////////////////////
 
 	var img = new Image();
+	var imgBackGround = new Image();
+	var img_normal_face = new Image();
+	var img_normal_background = new Image();
+	var img_laugh_face = new Image();
+	var img_laugh_background = new Image();
 	var imgSc;
 	var dx;
 	var dy;
@@ -105,11 +110,25 @@ $(document).ready(function () {
 		reader.readAsDataURL(file);
 	});
 
+	// 背景画像
+	img_normal_background.src = "miku_normal_background.gif?" + new Date().getTime();
+	img_normal_background.onload = function () {
+		img_laugh_background.src = "miku_laugh_background.gif?" + new Date().getTime();
+	};
+	img_laugh_background.onload = function () {
+		img_laugh_face.src = "miku_laugh_face.gif?" + new Date().getTime();
+	}
+	img_laugh_face.onload = function () {
+		img.src = "miku_normal_face.gif?" + new Date().getTime();
+	}
+	imgBackGround = img_normal_background;
+	img = img_normal_face;
+
 	// 最初の画像を選択
 	//img.src = "miku.png?" + new Date().getTime();
 	//img.src = "donut.jpg?" + new Date().getTime();
 	//img.src = "hachinosu.jpg?" + new Date().getTime();
-	img.src = "blue.jpg?" + new Date().getTime();
+	//img.src = "blue.jpg?" + new Date().getTime();
 	
 
 	// 画像が読み込まれたときに実行
@@ -139,6 +158,7 @@ $(document).ready(function () {
 		outline = new Outline();
 		mainloop();
 	}
+
 
 
 	/////////////////////////////////////////////////////////
@@ -207,8 +227,12 @@ $(document).ready(function () {
 		context.clearRect(0, 0, canvasWidth, canvasHeight);
 
 		// 全体の写真を描画
-		if(!meshFlag)
+		// 全体の写真を描画
+		if(!meshFlag) {
+			context.drawImage(imgBackGround, dx, dy, dw, dh);
 			context.drawImage(img, dx, dy, dw, dh);
+
+		}
 
 		context.fillStyle = 'rgb(0, 0, 0)'; // 黒
 		context.strokeStyle = 'rgb(0, 0, 0)'; // 黒
@@ -306,6 +330,7 @@ $(document).ready(function () {
 			context.strokeStyle=color;
 			color='rgb(220,30,30)';
 			context.fillStyle=color;
+			context.drawImage(imgBackGround, dx, dy, dw, dh);
 			for(var i=0; i<physicsModel.tri.length; ++i) {
 				if(physicsModel.removedFlag[i]) continue;
 				context.save();
@@ -404,7 +429,14 @@ $(document).ready(function () {
 		}
 
 		var timeSetB0 = new Date();
-		physicsModel.setBoundary(clickState, mousePos, gravityFlag, selfCldFlag);		
+		var touchFlag = physicsModel.setBoundary(clickState, mousePos, gravityFlag, selfCldFlag);		
+		if(touchFlag) {
+			img = img_laugh_face;
+			imgBackGround = img_laugh_background;
+		} else {
+			img = img_normal_face;
+			imgBackGround = img_normal_background;
+		}
 		var timeSetB1 = new Date();
 		//console.log("setBoundary " + (timeSetB1-timeSetB0) + " [ms]");
 
@@ -426,6 +458,7 @@ $(document).ready(function () {
 		*/
 
 
+		/*
 		var colFlagNow = physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
 
 		// 音声再生
@@ -434,6 +467,7 @@ $(document).ready(function () {
 			document.getElementById("puyon1").play();
 		}
 		colFlagBuf = colFlagNow;
+		*/
 
         if(fractureFlag) {
 	        physicsModel.calcStress();
@@ -470,6 +504,7 @@ $(document).ready(function () {
 			context.strokeStyle = color;
 			color = 'rgb(220,30,30)';
 			context.fillStyle = color;
+			context.drawImage(imgBackGround, dx, dy, dw, dh);
 			for(var i=0, len=physicsModel.tri.length; i<len; ++i){
 				if(physicsModel.removedFlag[i]) continue;
 				context.save();
