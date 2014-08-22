@@ -24,7 +24,7 @@ ImageManager.prototype.calcDrawParam = function (canvasObj) {
 	}
 }
 
-ImageManager.prototype.readImg = function(filename){
+ImageManager.prototype.readImage = function(filename){
 	this.img.src = filename;
 }
 

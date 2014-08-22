@@ -61,11 +61,7 @@ $(document).ready(function () {
 	/////////////////////////////////
 	// 画像の読み込み
 	//////////////////////////////////
-	var img = new Image();
-	var dx;
-	var dy;
-	var dw;
-	var dh;
+	var imgMg = new ImageManager(imgSc);
 
 	$("#uploadFile").change(function () {
 		// 選択されたファイルを取得
@@ -76,18 +72,8 @@ $(document).ready(function () {
 		// File APIを使用し、ローカルファイルを読み込む
 		reader.onload=function (evt) {
 			// 画像がloadされた後に、canvasに描画する
-			img.onload=function () {
-				if(img.height<img.width) {
-					dx=0.5*(1-imgSc)*canvasWidth;
-					dy=0.5*(canvasHeight-imgSc*img.height/img.width*canvasWidth);
-					dw=imgSc*canvasWidth;
-					dh=imgSc*canvasWidth*img.height/img.width;
-				} else {
-					dx=0.5*(canvasWidth-imgSc*img.width/img.height*canvasHeight);
-					dy=0.5*(1-imgSc)*canvasHeight;
-					dw=imgSc*canvasHeight*img.width/img.height;
-					dh=imgSc*canvasHeight;
-				}
+			imgMg.img.onload=function () {
+				imgMg.calcDrawParam(canvas);
 				// 画像以外の変数の初期化
 				state="drawOutLine";
 				cv=new ClosedCurve(minlen);
@@ -95,35 +81,25 @@ $(document).ready(function () {
 				mainloop();
 			}
 			// 画像のURLをソースに設定
-			img.src=evt.target.result;
+			imgMg.readImage(evt.target.result);
 		}
 		// ファイルを読み込み、データをBase64でエンコードされたデータURLにして返す
 		reader.readAsDataURL(file);
 	});
 
 	// 最初の画像を選択
-	img.src = defaultImg  + new Date().getTime();
+	imgMg.readImage(defaultImg  + new Date().getTime());
 	
 
 	// 画像が読み込まれたときに実行
-	img.onload=function () {
-		if(img.height<img.width) {
-			dx=0.5*(1-imgSc)*canvasWidth;
-			dy=0.5*(canvasHeight-imgSc*img.height/img.width*canvasWidth);
-			dw=imgSc*canvasWidth;
-			dh=imgSc*canvasWidth*img.height/img.width;
-		} else {
-			dx=0.5*(canvasWidth-imgSc*img.width/img.height*canvasHeight);
-			dy=0.5*(1-imgSc)*canvasHeight;
-			dw=imgSc*canvasHeight*img.width/img.height;
-			dh=imgSc*canvasHeight;
-		}
+	imgMg.img.onload=function () {
+		imgMg.calcDrawParam(canvas);
 		cv=new ClosedCurve(minlen);
 		outline=new Outline();
 		mainloop();
 	}
 	// 画像が読み込めない時も実行
-	img.onerror=function(){
+	imgMg.img.onerror=function(){
 		alert("画像が読み込めません");
 		// メッシュ表示モードにする
 		$("#meshCheckBox").attr("checked", true);
@@ -200,7 +176,7 @@ $(document).ready(function () {
 
 		// 全体の写真を描画
 		if(!meshFlag) {
-			context.drawImage(img, dx, dy, dw, dh);
+			imgMg.drawImage(context);
 		}
 
 		context.fillStyle = 'rgb(0, 0, 0)'; // 黒
@@ -240,7 +216,7 @@ $(document).ready(function () {
 		if (!mesh.addPoint()) {
 			context.setTransform(1, 0, 0, 1, 0, 0);
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
-			context.drawImage(img, dx, dy, dw, dh);
+			imgMg.drawImage(context);
 			var color = 'rgb(0,0,0)';
 			context.strokeStyle = color;
 			for (var i = 0; i < mesh.tri.length; ++i) {
@@ -332,7 +308,7 @@ $(document).ready(function () {
 				// 画像の基準座標系に並進変換
 				context.transform(1, 0, 0, 1, -physicsModel.initpos[tri[0]][0], -physicsModel.initpos[tri[0]][1]);
 				// 画像の描画
-				context.drawImage(img, dx, dy, dw, dh);
+				imgMg.drawImage(context);
 
 				context.restore();
 
@@ -499,7 +475,7 @@ $(document).ready(function () {
 				// 画像の基準座標系に並進変換
 				context.transform(1, 0, 0, 1, -physicsModel.initpos[tri[0]][0], -physicsModel.initpos[tri[0]][1]);
 				// 画像の描画
-				context.drawImage(img, dx, dy, dw, dh);
+				imgMg.drawImage(context);
             
 				context.restore();
 			
@@ -605,6 +581,10 @@ $(document).ready(function () {
 
 	    if(outline.closedCurves.length==0) {
 	    	cv=new ClosedCurve(minlen);
+			var dx = imgMg.dx;
+			var dy = imgMg.dy;
+			var dw = imgMg.dw;
+			var dh = imgMg.dh;
 	    	cv.addPoint([dx, dy]);
 	    	cv.addPoint([dx, dy+dh]);
 	    	cv.addPoint([dx+dw, dy+dh]);
