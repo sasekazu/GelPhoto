@@ -90,14 +90,14 @@ function drawFEMwithImage(context, physicsModel, imgMg) {
 		context.clip();
 
 		var tri1=[
-			[physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1], ],
-			[physicsModel.initpos[tri[1]][0], physicsModel.initpos[tri[1]][1], ],
-			[physicsModel.initpos[tri[2]][0], physicsModel.initpos[tri[2]][1], ],
+			[physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1] ],
+			[physicsModel.initpos[tri[1]][0], physicsModel.initpos[tri[1]][1] ],
+			[physicsModel.initpos[tri[2]][0], physicsModel.initpos[tri[2]][1] ]
 		];
 		var tri2=[
-			[physicsModel.pos[tri[0]][0], physicsModel.pos[tri[0]][1], ],
-			[physicsModel.pos[tri[1]][0], physicsModel.pos[tri[1]][1], ],
-			[physicsModel.pos[tri[2]][0], physicsModel.pos[tri[2]][1], ],
+			[physicsModel.pos[tri[0]][0], physicsModel.pos[tri[0]][1] ],
+			[physicsModel.pos[tri[1]][0], physicsModel.pos[tri[1]][1] ],
+			[physicsModel.pos[tri[2]][0], physicsModel.pos[tri[2]][1] ]
 		];
 
 		// 画像の基準座標系に変換
