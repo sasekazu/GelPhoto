@@ -6,10 +6,9 @@
 /// <reference path="fem.js" />
 /// <reference path="vibrate.js" />
 /// <reference path="drawUtil.js" />
+/// <reference path="parameters.js" />
+/// <reference path="mouseUtil.js" />
 
-
-
-var gravity = {x:0, y:0}; // 重力加速度[G]
 
 
 $(document).ready(function () {
@@ -35,7 +34,6 @@ $(document).ready(function () {
 	*/
 
 	
-	
 	// マウスポインタに関する変数
 	var clickState = "Up";		// Up, Down
 	var mousePos = [];
@@ -45,7 +43,6 @@ $(document).ready(function () {
 
     // アウトライン作成用変数
     var outline = new Outline();
-    var minlen=40;
 	var cv;
     var drawingFlag = true;    // 書き終わった後にクリックしなおしてから次の描画を始めるためのフラグ
 
@@ -65,7 +62,6 @@ $(document).ready(function () {
 	//////////////////////////////////
 
 	var img = new Image();
-	var imgSc;
 	var dx;
 	var dy;
 	var dw;
@@ -81,7 +77,6 @@ $(document).ready(function () {
 		reader.onload=function (evt) {
 			// 画像がloadされた後に、canvasに描画する
 			img.onload=function () {
-				imgSc=1.0;
 				if(img.height<img.width) {
 					dx=0.5*(1-imgSc)*canvasWidth;
 					dy=0.5*(canvasHeight-imgSc*img.height/img.width*canvasWidth);
@@ -108,12 +103,11 @@ $(document).ready(function () {
 	});
 
 	// 最初の画像を選択
-	img.src = "blue.jpg?" + new Date().getTime();
+	img.src = defaultImg  + new Date().getTime();
 	
 
 	// 画像が読み込まれたときに実行
 	img.onload=function () {
-		imgSc=1;
 		if(img.height<img.width) {
 			dx=0.5*(1-imgSc)*canvasWidth;
 			dy=0.5*(canvasHeight-imgSc*img.height/img.width*canvasWidth);
@@ -206,8 +200,9 @@ $(document).ready(function () {
 		context.clearRect(0, 0, canvasWidth, canvasHeight);
 
 		// 全体の写真を描画
-		if(!meshFlag)
+		if(!meshFlag) {
 			context.drawImage(img, dx, dy, dw, dh);
+		}
 
 		context.fillStyle = 'rgb(0, 0, 0)'; // 黒
 		context.strokeStyle = 'rgb(0, 0, 0)'; // 黒
@@ -306,7 +301,9 @@ $(document).ready(function () {
 			color='rgb(220,30,30)';
 			context.fillStyle=color;
 			for(var i=0; i<physicsModel.tri.length; ++i) {
-				if(physicsModel.removedFlag[i]) continue;
+				if(physicsModel.removedFlag[i]) {
+					continue;
+				}
 				context.save();
 
 				// 三角形でクリップ
@@ -350,15 +347,18 @@ $(document).ready(function () {
 		var color='rgb(100, 100, 100)';
 		context.strokeStyle=color;
 		context.fillStyle=color;
-		for(var i=0; i<physicsModel.pos.length; ++i) 
+		for(var i = 0; i < physicsModel.pos.length; ++i) {
 			drawCircle(context, physicsModel.pos[i], 3);
+
+		}
 
 		// 固定点の描画
 		var color='rgb(200, 0, 0)';
 		context.strokeStyle=color;
 		context.fillStyle=color;
+		var n;
 		for(var i=0; i<physicsModel.fixNode.length; ++i) {
-			var n=physicsModel.fixNode[i];
+			n=physicsModel.fixNode[i];
 			drawCircle(context, physicsModel.pos[n], 3);
 		}
 
@@ -618,8 +618,9 @@ $(document).ready(function () {
 	        ;
 	    };
 	    mesh.meshGen();
-	    for(var i=0; i<20; ++i)
+	    for(var i = 0; i < 20; ++i) {
 	        mesh.laplacianSmoothing();
+	    }
 
 		// 物理モデルの初期化をメッシュ完成直後に行う
 	    //physicsModel = new FEMSparse(mesh.dPos, mesh.tri);
@@ -656,21 +657,12 @@ $(document).ready(function () {
 	// クリックまたはタッチに対する処理
 	// 引数はタッチしたキャンパス上の点座標が格納されている配列
 	function clickFunc(touches){
-		
-		mousePos = [];
-		
-		var canvasOffset = canvas.offset();
-		for(var i=0; i<touches.length; ++i){
-			var canvasX = Math.floor(touches[i].pageX-canvasOffset.left);
-			var canvasY = Math.floor(touches[i].pageY-canvasOffset.top);
-			if(canvasX < 0 || canvasX > canvasWidth){
-				return;
-			}
-			if(canvasY < 0 || canvasY > canvasHeight){
-				return;
-			}
-			mousePos.push([canvasX, canvasY]);
+
+		getMousePos(canvas, touches, mousePos);
+		if(mousePos == null) {
+			return;
 		}
+
 		clickState = "Down";
 
         // ホールドノードの決定
@@ -683,6 +675,8 @@ $(document).ready(function () {
 			}
 		}
 	}
+
+
 	
 	// クリックまたはタッチのムーブに対する処理
 	// 引数はタッチしたキャンパス上の点座標が格納されている配列
@@ -745,11 +739,3 @@ $(document).ready(function () {
 	
 	
 } );
-
-
-
-window.addEventListener("devicemotion", function(event1){
-    gravity.x = event1.accelerationIncludingGravity.x;
-    gravity.y = event1.accelerationIncludingGravity.y;
-}, true);
-             
