@@ -4,6 +4,11 @@
 }
 
 
+#page{
+	width: 610px;
+	margin: 0 auto;
+}
+
 body{
 	font-family: "ƒqƒ‰ƒMƒmŠpƒS ProN", "Hiragino Kaku Gothic ProN", "ƒƒCƒŠƒI", Meiryo, sans-serif;
 }
