@@ -14,6 +14,10 @@
 
 $(document).ready(function () {
 
+	// チェックボックスのイベント処理
+	setCheckBoxEvent();
+
+
 	// 2dコンテキストを取得
 	var canvas = $("#mViewCanvas");
 	var cvs = document.getElementById('mViewCanvas');	// イベント設定用
@@ -141,7 +145,6 @@ $(document).ready(function () {
 	////////　 アウトライン作成関数
 	/////////////////////////////////////////////////////////
 	function drawOutLineFunc(){
-        var meshFlag = $('#meshCheckBox').is(':checked');
 	    switch (clickState) {
 	        case "Down":
 	            if (drawingFlag) {
@@ -232,8 +235,6 @@ $(document).ready(function () {
 	//////////////////////////////////////////////////////
 	function fixFunc() {
 		
-        var meshFlag = $('#meshCheckBox').is(':checked');
-
 		switch (clickState) {
 			case "Down":
 				if(!dragFlagf) {
@@ -356,13 +357,6 @@ $(document).ready(function () {
 	//////////////////////////////////////////////////////
 	var colFlagBuf = false;
 	function physicsFunc() {
-
-		var gravityFlag = $('#gravityCheckBox').is(':checked');
-        var fractureFlag = $('#fractureCheckBox').is(':checked');
-        var meshFlag = $('#meshCheckBox').is(':checked');
-        var dataFlag = $('#dataCheckBox').is(':checked');
-		var selfCldFlag = $('#selfCollisionCheckBox').is(':checked');
-		var audioFlag = $('#audioCheckBox').is(':checked');
 
 		// 重力加速度の更新
 		// PCでは取得した値が下のようになるので、その場合は更新しない
@@ -649,7 +643,6 @@ $(document).ready(function () {
 		if(state == "physics") {
 			var selected = physicsModel.selectHoldNodes(mousePos);
 			// 音声再生
-			var audioFlag = $('#audioCheckBox').is(':checked');
 			if(audioFlag && selected) {
 				document.getElementById("nyu1").play();
 			}
