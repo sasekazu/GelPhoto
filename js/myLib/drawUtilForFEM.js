@@ -190,6 +190,7 @@ function drawFEMwithData(context, physicsModel) {
 	// タッチ部分における外力ベクトルの描画
 	context.lineWidth = 3;
 	context.strokeStyle = 'darkblue';
+	var touchForce = physicsModel.getForce();
 	var tForce = [0,0];
 	for(var i = 0; i < touchForce.length; i++) {
 		tForce = numeric.mul(-0.05, touchForce[i]);
