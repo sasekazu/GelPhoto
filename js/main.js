@@ -7,25 +7,19 @@
 /// <reference path="vibrate.js" />
 /// <reference path="drawUtil.js" />
 /// <reference path="parameters.js" />
+/// <reference path="globalVals.js" />
 /// <reference path="mouseUtil.js" />
 /// <reference path="ImageManager.js" />
 /// <reference path="drawUtilForFEM.js" />
 
 
-
-
 $(document).ready(function () {
 
-	// チェックボックスのイベント処理
-	setCheckBoxEvent();
-
-
-	// 2dコンテキストを取得
-	var canvas = $("#mViewCanvas");
-	var cvs = document.getElementById('mViewCanvas');	// イベント設定用
-	var context = canvas.get(0).getContext("2d");
-	var canvasWidth = canvas.width();
-	var canvasHeight = canvas.height();
+	// キャンバスのコンテキスト取得
+	initCanvas();
+	// イベント処理の追加
+	initCheckBoxEvent();
+	initButtonEvent();
 
 	// 基本的にwindow sizeは変えないことにする
 	// タブレット版は変えたほうが良いかも
@@ -40,35 +34,12 @@ $(document).ready(function () {
 	resizeCanvas();	
 	*/
 
-	
-	// マウスポインタに関する変数
-	var clickState = "Up";		// Up, Down
-	var mousePos = [];
-
-    // 初期状態はアウトライン作成
-    var state = "drawOutLine";
-
-    // アウトライン作成用変数
-    var outline = new Outline();
-	var cv;
-    var drawingFlag = true;    // 書き終わった後にクリックしなおしてから次の描画を始めるためのフラグ
-
-    // メッシュ作成用変数
-    var mesh;
-
-    // 変形計算用変数
-    var physicsModel;
-
-	// 固定領域選択用変数
-    var clickPosf=[];
-    var dragFlagf=false;
-
 
 	/////////////////////////////////
 	// 画像の読み込み
+	// 読み込み完了後、mainloopに遷移
 	//////////////////////////////////
-	var imgMg = new ImageManager(imgSc);
-
+	imgMg = new ImageManager(imgSc);
 	$("#uploadFile").change(function () {
 		// 選択されたファイルを取得
 		var file=this.files[0];
@@ -92,10 +63,8 @@ $(document).ready(function () {
 		// ファイルを読み込み、データをBase64でエンコードされたデータURLにして返す
 		reader.readAsDataURL(file);
 	});
-
 	// 最初の画像を選択
 	imgMg.readImage(defaultImg  + new Date().getTime());
-	
 
 	// 画像が読み込まれたときに実行
 	imgMg.img.onload=function () {
@@ -104,6 +73,7 @@ $(document).ready(function () {
 		outline=new Outline();
 		mainloop();
 	}
+
 	// 画像が読み込めない時も実行
 	imgMg.img.onerror=function(){
 		alert("画像が読み込めません");
@@ -116,11 +86,10 @@ $(document).ready(function () {
 
 
 	/////////////////////////////////////////////////////////
-	/////////　メインの処理
+	//　メインの処理
+	//  無限ループ
 	/////////////////////////////////////////////////////////
-    	
 	function mainloop() {
-
 		var time0 = new Date();
 	    switch (state) {
         case "drawOutLine":
@@ -138,7 +107,6 @@ $(document).ready(function () {
 	    }
 	    var time1 = new Date();
 		//console.log(time1-time0 + " [ms]");
-
 	    setTimeout(mainloop, 20);
 	}
 	
@@ -268,8 +236,8 @@ $(document).ready(function () {
 			drawLine(context, mousePos[0], [mousePos[0][0], clickPosf[1]]);
 			drawLine(context, [mousePos[0][0], clickPosf[1]], clickPosf);
 		}
-
 	}
+
 	//////////////////////////////////////////////////////////
 	//////  変形計算の処理
 	//////////////////////////////////////////////////////
@@ -342,152 +310,4 @@ $(document).ready(function () {
 
 	}
 		
-	//////////////////////////////////////////////////////////
-	//////  イベント処理
-	//////////////////////////////////////////////////////
-		
-	// リセットボタン
-	$("#resetButton").click(function () {
-		cv = new ClosedCurve(minlen);
-        outline = new Outline();
-        state = "drawOutLine";
-	});
-
-    // メッシュボタン
-	$("#meshButton").click(function () {
-
-	    if(outline.closedCurves.length==0) {
-	    	cv=new ClosedCurve(minlen);
-			var dx = imgMg.dx;
-			var dy = imgMg.dy;
-			var dw = imgMg.dw;
-			var dh = imgMg.dh;
-	    	cv.addPoint([dx, dy]);
-	    	cv.addPoint([dx, dy+dh]);
-	    	cv.addPoint([dx+dw, dy+dh]);
-	    	cv.addPoint([dx+dw, dy]);
-	    	cv.addPoint([dx, dy]);
-	    	outline.addClosedLine(cv);
-		}
-
-	    mesh=new DelaunayGen(outline, minlen);
-	    while(mesh.addPoint()) {
-	        ;
-	    };
-	    mesh.meshGen();
-	    for(var i = 0; i < 20; ++i) {
-	        mesh.laplacianSmoothing();
-	    }
-
-		// 物理モデルの初期化をメッシュ完成直後に行う
-	    //physicsModel = new FEMSparse(mesh.dPos, mesh.tri);
-	    physicsModel = new FEM(mesh.dPos, mesh.tri, outline);
-	    physicsModel.gripRad=minlen;
-
-	    state="physics";
-	    console.log("posNum "+physicsModel.pos.length);
-	    console.log("triNum "+physicsModel.tri.length);
-	});
-
-	// 固定領域選択ボタン
-	$("#fixButton").click(function () {
-		state="fix";
-	});
-
-	// 固定解除ボタン
-	$("#freeButton").click(function () {
-		physicsModel.fixNode=[];
-	});
-
-    // 変形計算ボタン
-	$("#physicsButton").click(function () {
-        state = "physics";
-	});
-
-	
-	//////////////////////////////////////////////////////////
-	//////  マウス関連イベント群
-	//////////////////////////////////////////////////////////
-	
-	// クリックまたはタッチに対する処理
-	// 引数はタッチしたキャンパス上の点座標が格納されている配列
-	function clickFunc(touches){
-
-		getMousePos(canvas, touches, mousePos);
-		if(mousePos == null) {
-			return;
-		}
-
-		clickState = "Down";
-
-        // ホールドノードの決定
-		if(state == "physics") {
-			var selected = physicsModel.selectHoldNodes(mousePos);
-			// 音声再生
-			if(audioFlag && selected) {
-				document.getElementById("nyu1").play();
-			}
-		}
-	}
-	
-	// クリックまたはタッチのムーブに対する処理
-	// 引数はタッチしたキャンパス上の点座標が格納されている配列
-	function moveFunc(touches){
-  		mousePos = [];
-		var canvasOffset = canvas.offset();
-		for(var i=0; i<touches.length; ++i){
-			var canvasX = Math.floor(touches[i].pageX-canvasOffset.left);
-			var canvasY = Math.floor(touches[i].pageY-canvasOffset.top);
-			mousePos.push([canvasX, canvasY]);
-		}
-	}
-	
-	function endFunc() {
-		clickState = "Up";
-	}	
-	
-	// タブレットのタッチイベント
-	cvs.addEventListener('touchstart', function(event) {
-		event.preventDefault();
-		//マルチタッチの場合、タッチ箇所がリストで取得されます。
-		touches = event.touches;
-		clickFunc(touches);
-	}); 
-	
-	// タブレットのムーブイベント
-	cvs.addEventListener('touchmove', function(event) {
-		//マルチタッチの場合、タッチ箇所がリストで取得されます。
-		touches = event.touches;
-		moveFunc(touches);
-	});	
-
-	// タブレットのタッチ終了イベント
-	cvs.addEventListener('touchend', function() {
-		endFunc();
-	});
-	
-	
-	// mouseクリック時のイベントコールバック設定
-	$(window).mousedown( function(e){
-		touches = [];
-		touches[0] = e;
-		clickFunc(touches);
-	});
-	
-	
-	// mouse移動時のイベントコールバック設定
-	$(window).mousemove( function(e){
-		//if(clickState == "Up")
-		//	return;
-		touches = [];
-		touches[0] = e;
-		moveFunc(touches);
-	});
-	
-	// mouseクリック解除時のイベントコールバック設定
-	$(window).mouseup( function(e){
-		endFunc();
-	});
-	
-	
 } );
