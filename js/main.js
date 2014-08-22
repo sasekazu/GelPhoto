@@ -8,6 +8,7 @@
 /// <reference path="drawUtil.js" />
 /// <reference path="parameters.js" />
 /// <reference path="mouseUtil.js" />
+/// <reference path="ImageManager.js" />
 
 
 
@@ -60,7 +61,6 @@ $(document).ready(function () {
 	/////////////////////////////////
 	// 画像の読み込み
 	//////////////////////////////////
-
 	var img = new Image();
 	var dx;
 	var dy;
@@ -90,7 +90,6 @@ $(document).ready(function () {
 				}
 				// 画像以外の変数の初期化
 				state="drawOutLine";
-				console.log("area "+(dw*dh));
 				cv=new ClosedCurve(minlen);
 				outline=new Outline();
 				mainloop();
@@ -261,8 +260,9 @@ $(document).ready(function () {
 
 		switch (clickState) {
 			case "Down":
-				if(!dragFlagf) 
+				if(!dragFlagf) {
 					clickPosf=numeric.clone(mousePos[0]);
+				}
 				
 				dragFlagf=true;
 
