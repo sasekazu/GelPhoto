@@ -9,6 +9,8 @@
 /// <reference path="parameters.js" />
 /// <reference path="mouseUtil.js" />
 /// <reference path="ImageManager.js" />
+/// <reference path="drawUtilForFEM.js" />
+
 
 
 
@@ -172,42 +174,18 @@ $(document).ready(function () {
                 drawingFlag = true;
                 break;
 	    }
+
         // 描画処理
-		// 画面をリセット
 		context.setTransform(1,0,0,1,0,0);
 		context.clearRect(0, 0, canvasWidth, canvasHeight);
-
 		// 全体の写真を描画
 		if(!meshFlag) {
 			imgMg.drawImage(context);
 		}
-
-		context.fillStyle = 'rgb(0, 0, 0)'; // 黒
-		context.strokeStyle = 'rgb(0, 0, 0)'; // 黒
-
         // 作成中の曲線の描画
-		for (var i = 0; i < cv.lines.length; ++i) {
-		    drawLine(context, cv.lines[i].start, cv.lines[i].end);
-		    drawCircle(context, cv.lines[i].start, 2);
-		    drawCircle(context, cv.lines[i].end, 2);
-		}
-		var color = 'rgb(255,0,0)';
-		context.fillStyle = color;
-		drawCircle(context, cv.endpos, 3);
-
+		drawClosedCurve(context, cv);
         // 輪郭全体の描画
-        context.lineWidth = 4.0;
-		var color = 'rgb(0,0,0)';
-		context.fillStyle = color;
-		for (var c = 0; c < outline.closedCurves.length; c++) {
-            var cvtmp = outline.closedCurves[c];
-		    for (var i = 0; i < cvtmp.lines.length; ++i) {
-		        drawLine(context, cvtmp.lines[i].start, cvtmp.lines[i].end);
-		        drawCircle(context, cvtmp.lines[i].start, 1);
-		        drawCircle(context, cvtmp.lines[i].end, 1);
-		    }
-		}		
-        context.lineWidth = 1.0;
+		drawOutLine(context, outline);
 
 	}
 	
@@ -220,13 +198,7 @@ $(document).ready(function () {
 			context.setTransform(1, 0, 0, 1, 0, 0);
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
 			imgMg.drawImage(context);
-			var color = 'rgb(0,0,0)';
-			context.strokeStyle = color;
-			for (var i = 0; i < mesh.tri.length; ++i) {
-				var tri = [mesh.tri[i][0], mesh.tri[i][1], mesh.tri[i][2]];
-				drawTriS(context, mesh.dPos[tri[0]], mesh.dPos[tri[1]], mesh.dPos[tri[2]]);
-			}
-			return;
+			drawMesh(context, mesh);
 		}
 	}
 
@@ -234,15 +206,12 @@ $(document).ready(function () {
 	//////  固定領域選択の処理
 	//////////////////////////////////////////////////////
 	function fixFunc() {
-		
 		switch (clickState) {
 			case "Down":
 				if(!dragFlagf) {
 					clickPosf=numeric.clone(mousePos[0]);
 				}
-				
 				dragFlagf=true;
-
 				break;
 			case "Up":
 				if(dragFlagf) {
@@ -250,8 +219,9 @@ $(document).ready(function () {
 					for(var i=0; i<physicsModel.pos.length; ++i) {
 						sub1=(physicsModel.pos[i][0]-clickPosf[0])*(physicsModel.pos[i][0]-mousePos[0][0]);
 						sub2=(physicsModel.pos[i][1]-clickPosf[1])*(physicsModel.pos[i][1]-mousePos[0][1]);
-						if(sub1<=0 && sub2<=0)
+						if(sub1 <= 0 && sub2 <= 0) {
 							physicsModel.fixNode.push(i);
+						}
 					}
 					clickPosf=[];
 				}
@@ -259,65 +229,15 @@ $(document).ready(function () {
 				break;
 		}
 		// 描画処理
-		// 画面をリセット
 		context.setTransform(1, 0, 0, 1, 0, 0);
 		context.clearRect(0, 0, canvasWidth, canvasHeight);
 
 		// メッシュの描画
-		// 三角形の描画
 		if(meshFlag) { 
-			for(var i=0; i<physicsModel.tri.length; ++i) {
-				var color = "rgb(255,100,100)";
-   				context.fillStyle = color; 
-				context.strokeStyle = 'rgb(0, 0, 0)'; 
-				drawTriS(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-			}
+			drawFEMS(context, physicsModel);
 		}else{
-			var color='rgb(0,0,0)';
-			context.strokeStyle=color;
-			color='rgb(220,30,30)';
-			context.fillStyle=color;
-			for(var i=0; i<physicsModel.tri.length; ++i) {
-				if(physicsModel.removedFlag[i]) {
-					continue;
-				}
-				context.save();
-
-				// 三角形でクリップ
-				var tri=[physicsModel.tri[i][0], physicsModel.tri[i][1], physicsModel.tri[i][2]];
-				drawTriClip(context, physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
-				context.clip();
-
-				var tri1=[
-					[physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1], ],
-					[physicsModel.initpos[tri[1]][0], physicsModel.initpos[tri[1]][1], ],
-					[physicsModel.initpos[tri[2]][0], physicsModel.initpos[tri[2]][1], ],
-				];
-				var tri2=[
-					[physicsModel.pos[tri[0]][0], physicsModel.pos[tri[0]][1], ],
-					[physicsModel.pos[tri[1]][0], physicsModel.pos[tri[1]][1], ],
-					[physicsModel.pos[tri[2]][0], physicsModel.pos[tri[2]][1], ],
-				];
-
-				// 画像の基準座標系に変換
-				context.setTransform(1, 0, 0, 1, 0, 0);
-				// 三角形基準座標系に並進変換
-				context.transform(1, 0, 0, 1, physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1]);
-				// 変形に伴うアフィン変換
-				var aff=getAffineMat(tri1, tri2);
-				context.transform(aff[0], aff[1], aff[2], aff[3], aff[4], aff[5]);
-				// 画像の基準座標系に並進変換
-				context.transform(1, 0, 0, 1, -physicsModel.initpos[tri[0]][0], -physicsModel.initpos[tri[0]][1]);
-				// 画像の描画
-				imgMg.drawImage(context);
-
-				context.restore();
-
-				var color = "rgb(255,100,100)";
-   				context.fillStyle = color; 
-				context.strokeStyle = 'rgb(0, 0, 0)'; 
-				drawTriS(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-			}
+			drawFEMwithImage(context, physicsModel, imgMg);
+			drawFEMS(context, physicsModel);
 		}
 
 		// 固定点の描画
@@ -339,7 +259,6 @@ $(document).ready(function () {
 			drawCircle(context, physicsModel.pos[n], 3);
 		}
 
-
 		// 選択領域の描画
 		context.fillStyle = 'rgb(255, 0, 0)'; 
 		context.strokeStyle='rgb(255, 0, 0)'; 
@@ -349,7 +268,6 @@ $(document).ready(function () {
 			drawLine(context, mousePos[0], [mousePos[0][0], clickPosf[1]]);
 			drawLine(context, [mousePos[0][0], clickPosf[1]], clickPosf);
 		}
-
 
 	}
 	//////////////////////////////////////////////////////////
@@ -387,12 +305,13 @@ $(document).ready(function () {
 		for(var i = 0; i < touchForce.length; i++) {
 			forceIntensity += numeric.norm2(touchForce[i]);
 		}
+
+		// for vibration int the future
+
 		//console.log(forceIntensity);
-		/*		
-		var fMax = 10000;
-		var vibVal = Math.round(forceIntensity/fMax);
-		vibratePulse(vibVal);
-		*/
+		//var fMax = 10000;
+		//var vibVal = Math.round(forceIntensity/fMax);
+		//vibratePulse(vibVal);
 
 
 		var colFlagNow = physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
@@ -409,152 +328,16 @@ $(document).ready(function () {
         	physicsModel.removeElement();
         }
 
-
         // 描画処理
 		context.setTransform(1,0,0,1,0,0);
 		context.clearRect(0, 0, canvasWidth, canvasHeight);
-
-
 		if(meshFlag){
-			// メッシュの描画
-			context.strokeStyle = 'black';
-			context.fillStyle = 'pink';
-			for(var i = 0, len = physicsModel.tri.length; i < len; ++i) {
-				if(physicsModel.removedFlag[i]) continue;
-				drawTriS(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-				drawTri(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-			}
-			if(selfCldFlag) {
-				// 表面エッジの描画
-				context.lineWidth = 3;
-				context.strokeStyle = 'black';
-				for(var i = 0, len = physicsModel.surEdge.length; i < len; ++i) {
-					drawLine(context, physicsModel.pos[physicsModel.surEdge[i][0]], physicsModel.pos[physicsModel.surEdge[i][1]])
-				}
-				context.lineWidth = 1;
-			}
+			drawFEM(context, physicsModel, selfCldFlag);
 		} else {
-			// 三角形の描画
-			var color = 'rgb(0,0,0)';
-			context.strokeStyle = color;
-			color = 'rgb(220,30,30)';
-			context.fillStyle = color;
-			for(var i=0, len=physicsModel.tri.length; i<len; ++i){
-				if(physicsModel.removedFlag[i]) continue;
-				context.save();
-
-				// 三角形でクリップ
-				var tri = [physicsModel.tri[i][0], physicsModel.tri[i][1], physicsModel.tri[i][2]];
-				drawTriClip(context, physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
-				context.clip();
-
-				var tri1 = [
-					[physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1], ],
-					[physicsModel.initpos[tri[1]][0], physicsModel.initpos[tri[1]][1], ],
-					[physicsModel.initpos[tri[2]][0], physicsModel.initpos[tri[2]][1], ],
-				];
-				var tri2 = [
-					[physicsModel.pos[tri[0]][0], physicsModel.pos[tri[0]][1], ],
-					[physicsModel.pos[tri[1]][0], physicsModel.pos[tri[1]][1], ],
-					[physicsModel.pos[tri[2]][0], physicsModel.pos[tri[2]][1], ],
-				];
-
-				// 画像の基準座標系に変換
-				context.setTransform(1, 0, 0, 1, 0, 0);
-				// 三角形基準座標系に並進変換
-				context.transform(1, 0, 0, 1, physicsModel.initpos[tri[0]][0], physicsModel.initpos[tri[0]][1]);
-				// 変形に伴うアフィン変換
-				var aff = getAffineMat(tri1, tri2);
-				context.transform(aff[0], aff[1], aff[2], aff[3], aff[4], aff[5]);
-				// 画像の基準座標系に並進変換
-				context.transform(1, 0, 0, 1, -physicsModel.initpos[tri[0]][0], -physicsModel.initpos[tri[0]][1]);
-				// 画像の描画
-				imgMg.drawImage(context);
-            
-				context.restore();
-			
-			}		
-
+			drawFEMwithImage(context, physicsModel, imgMg);
 		}
-
 		if(dataFlag){
-			// メッシュの描画
-			context.strokeStyle = 'black';
-			for(var i = 0, len = physicsModel.tri.length; i < len; ++i) {
-				if(physicsModel.removedFlag[i]) continue;
-				if(physicsModel.colTriFlag[i] === 1) {
-					context.fillStyle = 'gray';
-					drawTri(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-				} else if(physicsModel.colTriFlag[i] === 2) {
-					context.fillStyle = 'coral';
-					drawTri(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-				}
-				drawTriS(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-			}
-
-
-			// 表面ノードの描画
-			context.strokeStyle = 'rgb(0, 0, 0)';
-			for(var i = 0, len = physicsModel.surNode.length; i < len; ++i) {
-				if(physicsModel.colNdFlag[physicsModel.surNode[i]] === 0)
-					context.fillStyle = "blue";
-				else if(physicsModel.colNdFlag[physicsModel.surNode[i]] === 1)
-					context.fillStyle = "red";
-				else
-					context.fillStyle = "magenta";
-				drawCircle(context, physicsModel.pos[physicsModel.surNode[i]], 3);
-			}
-
-			// 表面法線ベクトルの描画
-			context.strokeStyle = 'green';
-			var edgeCenter;
-			var nmEnd;
-			var edg1, edg2;
-			for(var i = 0, len = physicsModel.normal.length; i < len; ++i) {
-				var scl = 20;
-				edg1 = physicsModel.surEdge[i][0];
-				edg2 = physicsModel.surEdge[i][1];
-				edgeCenter = numeric.add(physicsModel.pos[edg1], physicsModel.pos[edg2]);
-				edgeCenter = numeric.mul(0.5, edgeCenter);
-				nmEnd = numeric.mul(scl, physicsModel.normal[i]);
-				nmEnd = numeric.add(edgeCenter, nmEnd);
-				drawLine(context, edgeCenter, nmEnd);
-			}
-
-			// 頂点法線ベクトルの描画
-			context.strokeStyle = 'lightseagreen';
-			var ndNmStr;
-			var ndNmEnd;
-			for(var i = 0, len = physicsModel.surNode.length; i < len; ++i) {
-				var scl = 20;
-				ndNmStr = physicsModel.pos[physicsModel.surNode[i]];
-				ndNmEnd = numeric.mul(scl, physicsModel.ndNormal[i])
-				ndNmEnd = numeric.add(ndNmStr, ndNmEnd);
-				drawLine(context, ndNmStr, ndNmEnd);
-			}
-
-			// 外力ベクトルの描画
-			context.strokeStyle = 'red';
-			var fEnd;
-			var force = [0, 0];
-			for(var i = 0, len = physicsModel.posNum; i < len; ++i) {
-				var scl = 10;
-				force[0] = physicsModel.f[2 * i + 0];
-				force[1] = physicsModel.f[2 * i + 1];
-				force = numeric.mul(0.05, force);
-				fEnd = numeric.add(physicsModel.pos[i], force);
-				drawLine(context, physicsModel.pos[i], fEnd);
-			}
-
-			// タッチ部分における外力ベクトルの描画
-			context.lineWidth = 3;
-			context.strokeStyle = 'darkblue';
-			var tForce = [0,0];
-			for(var i = 0; i < touchForce.length; i++) {
-				tForce = numeric.mul(-0.05, touchForce[i]);
-				drawLine(context, mousePos[i], numeric.add(mousePos[i], tForce));
-			}
-			context.lineWidth = 1;
+			drawFEMwithData(context, physicsModel);
 		}
 
 	}
@@ -616,13 +399,11 @@ $(document).ready(function () {
 		physicsModel.fixNode=[];
 	});
 
-
     // 変形計算ボタン
 	$("#physicsButton").click(function () {
         state = "physics";
 	});
 
-	
 	
 	//////////////////////////////////////////////////////////
 	//////  マウス関連イベント群
@@ -648,8 +429,6 @@ $(document).ready(function () {
 			}
 		}
 	}
-
-
 	
 	// クリックまたはタッチのムーブに対する処理
 	// 引数はタッチしたキャンパス上の点座標が格納されている配列
