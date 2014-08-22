@@ -5,6 +5,8 @@
 /// <reference path="delaunay.js" />
 /// <reference path="fem.js" />
 /// <reference path="vibrate.js" />
+/// <reference path="drawUtil.js" />
+
 
 
 var gravity = {x:0, y:0}; // 重力加速度[G]
@@ -79,7 +81,7 @@ $(document).ready(function () {
 		reader.onload=function (evt) {
 			// 画像がloadされた後に、canvasに描画する
 			img.onload=function () {
-				imgSc=0.7;
+				imgSc=1.0;
 				if(img.height<img.width) {
 					dx=0.5*(1-imgSc)*canvasWidth;
 					dy=0.5*(canvasHeight-imgSc*img.height/img.width*canvasWidth);
@@ -106,9 +108,6 @@ $(document).ready(function () {
 	});
 
 	// 最初の画像を選択
-	//img.src = "miku.png?" + new Date().getTime();
-	//img.src = "donut.jpg?" + new Date().getTime();
-	//img.src = "hachinosu.jpg?" + new Date().getTime();
 	img.src = "blue.jpg?" + new Date().getTime();
 	
 
@@ -215,13 +214,13 @@ $(document).ready(function () {
 
         // 作成中の曲線の描画
 		for (var i = 0; i < cv.lines.length; ++i) {
-		    drawLine(cv.lines[i].start, cv.lines[i].end);
-		    drawCircle(cv.lines[i].start, 2);
-		    drawCircle(cv.lines[i].end, 2);
+		    drawLine(context, cv.lines[i].start, cv.lines[i].end);
+		    drawCircle(context, cv.lines[i].start, 2);
+		    drawCircle(context, cv.lines[i].end, 2);
 		}
 		var color = 'rgb(255,0,0)';
 		context.fillStyle = color;
-		drawCircle(cv.endpos, 3);
+		drawCircle(context, cv.endpos, 3);
 
         // 輪郭全体の描画
         context.lineWidth = 4.0;
@@ -230,9 +229,9 @@ $(document).ready(function () {
 		for (var c = 0; c < outline.closedCurves.length; c++) {
             var cvtmp = outline.closedCurves[c];
 		    for (var i = 0; i < cvtmp.lines.length; ++i) {
-		        drawLine(cvtmp.lines[i].start, cvtmp.lines[i].end);
-		        drawCircle(cvtmp.lines[i].start, 1);
-		        drawCircle(cvtmp.lines[i].end, 1);
+		        drawLine(context, cvtmp.lines[i].start, cvtmp.lines[i].end);
+		        drawCircle(context, cvtmp.lines[i].start, 1);
+		        drawCircle(context, cvtmp.lines[i].end, 1);
 		    }
 		}		
         context.lineWidth = 1.0;
@@ -252,7 +251,7 @@ $(document).ready(function () {
 			context.strokeStyle = color;
 			for (var i = 0; i < mesh.tri.length; ++i) {
 				var tri = [mesh.tri[i][0], mesh.tri[i][1], mesh.tri[i][2]];
-				drawTriS(mesh.dPos[tri[0]], mesh.dPos[tri[1]], mesh.dPos[tri[2]]);
+				drawTriS(context, mesh.dPos[tri[0]], mesh.dPos[tri[1]], mesh.dPos[tri[2]]);
 			}
 			return;
 		}
@@ -299,7 +298,7 @@ $(document).ready(function () {
 				var color = "rgb(255,100,100)";
    				context.fillStyle = color; 
 				context.strokeStyle = 'rgb(0, 0, 0)'; 
-				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+				drawTriS(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 			}
 		}else{
 			var color='rgb(0,0,0)';
@@ -312,7 +311,7 @@ $(document).ready(function () {
 
 				// 三角形でクリップ
 				var tri=[physicsModel.tri[i][0], physicsModel.tri[i][1], physicsModel.tri[i][2]];
-				drawTriClip(physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
+				drawTriClip(context, physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
 				context.clip();
 
 				var tri1=[
@@ -343,7 +342,7 @@ $(document).ready(function () {
 				var color = "rgb(255,100,100)";
    				context.fillStyle = color; 
 				context.strokeStyle = 'rgb(0, 0, 0)'; 
-				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+				drawTriS(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 			}
 		}
 
@@ -352,7 +351,7 @@ $(document).ready(function () {
 		context.strokeStyle=color;
 		context.fillStyle=color;
 		for(var i=0; i<physicsModel.pos.length; ++i) 
-			drawCircle(physicsModel.pos[i], 3);
+			drawCircle(context, physicsModel.pos[i], 3);
 
 		// 固定点の描画
 		var color='rgb(200, 0, 0)';
@@ -360,7 +359,7 @@ $(document).ready(function () {
 		context.fillStyle=color;
 		for(var i=0; i<physicsModel.fixNode.length; ++i) {
 			var n=physicsModel.fixNode[i];
-			drawCircle(physicsModel.pos[n], 3);
+			drawCircle(context, physicsModel.pos[n], 3);
 		}
 
 
@@ -368,10 +367,10 @@ $(document).ready(function () {
 		context.fillStyle = 'rgb(255, 0, 0)'; 
 		context.strokeStyle='rgb(255, 0, 0)'; 
 		if(clickPosf.length!=0) {
-			drawLine(clickPosf, [clickPosf[0], mousePos[0][1]]);
-			drawLine([clickPosf[0], mousePos[0][1]], mousePos[0]);
-			drawLine(mousePos[0], [mousePos[0][0], clickPosf[1]]);
-			drawLine([mousePos[0][0], clickPosf[1]], clickPosf);
+			drawLine(context, clickPosf, [clickPosf[0], mousePos[0][1]]);
+			drawLine(context, [clickPosf[0], mousePos[0][1]], mousePos[0]);
+			drawLine(context, mousePos[0], [mousePos[0][0], clickPosf[1]]);
+			drawLine(context, [mousePos[0][0], clickPosf[1]], clickPosf);
 		}
 
 
@@ -452,15 +451,15 @@ $(document).ready(function () {
 			context.fillStyle = 'pink';
 			for(var i = 0, len = physicsModel.tri.length; i < len; ++i) {
 				if(physicsModel.removedFlag[i]) continue;
-				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
-				drawTri(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+				drawTriS(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+				drawTri(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 			}
 			if(selfCldFlag) {
 				// 表面エッジの描画
 				context.lineWidth = 3;
 				context.strokeStyle = 'black';
 				for(var i = 0, len = physicsModel.surEdge.length; i < len; ++i) {
-					drawLine(physicsModel.pos[physicsModel.surEdge[i][0]], physicsModel.pos[physicsModel.surEdge[i][1]])
+					drawLine(context, physicsModel.pos[physicsModel.surEdge[i][0]], physicsModel.pos[physicsModel.surEdge[i][1]])
 				}
 				context.lineWidth = 1;
 			}
@@ -476,7 +475,7 @@ $(document).ready(function () {
 
 				// 三角形でクリップ
 				var tri = [physicsModel.tri[i][0], physicsModel.tri[i][1], physicsModel.tri[i][2]];
-				drawTriClip(physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
+				drawTriClip(context, physicsModel.pos[tri[0]], physicsModel.pos[tri[1]], physicsModel.pos[tri[2]]);
 				context.clip();
 
 				var tri1 = [
@@ -515,12 +514,12 @@ $(document).ready(function () {
 				if(physicsModel.removedFlag[i]) continue;
 				if(physicsModel.colTriFlag[i] === 1) {
 					context.fillStyle = 'gray';
-					drawTri(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+					drawTri(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 				} else if(physicsModel.colTriFlag[i] === 2) {
 					context.fillStyle = 'coral';
-					drawTri(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+					drawTri(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 				}
-				drawTriS(physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
+				drawTriS(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 			}
 
 
@@ -533,7 +532,7 @@ $(document).ready(function () {
 					context.fillStyle = "red";
 				else
 					context.fillStyle = "magenta";
-				drawCircle(physicsModel.pos[physicsModel.surNode[i]], 3);
+				drawCircle(context, physicsModel.pos[physicsModel.surNode[i]], 3);
 			}
 
 			// 表面法線ベクトルの描画
@@ -549,7 +548,7 @@ $(document).ready(function () {
 				edgeCenter = numeric.mul(0.5, edgeCenter);
 				nmEnd = numeric.mul(scl, physicsModel.normal[i]);
 				nmEnd = numeric.add(edgeCenter, nmEnd);
-				drawLine(edgeCenter, nmEnd);
+				drawLine(context, edgeCenter, nmEnd);
 			}
 
 			// 頂点法線ベクトルの描画
@@ -561,7 +560,7 @@ $(document).ready(function () {
 				ndNmStr = physicsModel.pos[physicsModel.surNode[i]];
 				ndNmEnd = numeric.mul(scl, physicsModel.ndNormal[i])
 				ndNmEnd = numeric.add(ndNmStr, ndNmEnd);
-				drawLine(ndNmStr, ndNmEnd);
+				drawLine(context, ndNmStr, ndNmEnd);
 			}
 
 			// 外力ベクトルの描画
@@ -574,7 +573,7 @@ $(document).ready(function () {
 				force[1] = physicsModel.f[2 * i + 1];
 				force = numeric.mul(0.05, force);
 				fEnd = numeric.add(physicsModel.pos[i], force);
-				drawLine(physicsModel.pos[i], fEnd);
+				drawLine(context, physicsModel.pos[i], fEnd);
 			}
 
 			// タッチ部分における外力ベクトルの描画
@@ -583,7 +582,7 @@ $(document).ready(function () {
 			var tForce = [0,0];
 			for(var i = 0; i < touchForce.length; i++) {
 				tForce = numeric.mul(-0.05, touchForce[i]);
-				drawLine(mousePos[i], numeric.add(mousePos[i], tForce));
+				drawLine(context, mousePos[i], numeric.add(mousePos[i], tForce));
 			}
 			context.lineWidth = 1;
 		}
@@ -743,143 +742,6 @@ $(document).ready(function () {
 	$(window).mouseup( function(e){
 		endFunc();
 	});
-	
-	
-	
-	
-	
-	//////////////////////////////////////////////////////////
-	//////  描画用関数群
-	//////////////////////////////////////////////////////////
-	
-	
-		
-	// x,y座標軸を描画
-	function drawAxis(){
-		context.beginPath();
-		context.moveTo(0,0);
-		context.lineTo(canvasWidth,0);
-		context.closePath();
-		context.stroke();
-		
-		context.beginPath();
-		context.moveTo(0,0);
-		context.lineTo(0,canvasHeight);
-		context.closePath();
-		context.stroke();
-	}
-	
-	function drawGrid(){
-		drawSquareS([-1,-1],[1,-1],[1,1],[-1,1]);
-		context.fillStyle = 'rgb(0, 0, 0)'; // 黒
-		context.font = "10px 'Arial'";
-		context.textAlign = "left";
-		p1 = [0,1.0];
-		context.fillText("1.0", p1[0], p1[1]);
-		p1 = [1.0,0];
-		context.fillText("1.0", p1[0], p1[1]);
-		p1 = [0,-1.0];
-		context.fillText("-1.0", p1[0], p1[1]);
-		p1 = [-1.0,0];
-		context.fillText("-1.0", p1[0], p1[1]);
-	}
-	
-	// 線を描画する関数
-	// 引数は物理座標の２次元ベクトル
-	function drawLine(p1, p2){
-		context.beginPath();
-		context.moveTo( p1[0], p1[1]);
-		context.lineTo( p2[0], p2[1]);
-		context.stroke();
-	}
-	
-	// 三角形を描画する関数
-	// 引数は物理座標の２次元ベクトル
-	function drawTri(p1, p2, p3){
-		context.beginPath();
-		context.moveTo( p1[0], p1[1]);
-		context.lineTo( p2[0], p2[1]);
-		context.lineTo( p3[0], p3[1]);
-		context.closePath();
-		context.fill();
-	}
-	function drawTriS(p1, p2, p3){
-		context.beginPath();
-		context.moveTo( p1[0], p1[1]);
-		context.lineTo( p2[0], p2[1]);
-		context.lineTo( p3[0], p3[1]);
-		context.closePath();
-		context.stroke();
-	}
-
-
-	function drawTriClip(p1, p2, p3){
-		context.beginPath();
-		context.moveTo( p1[0], p1[1]);
-		context.lineTo( p2[0], p2[1]);
-		context.lineTo( p3[0], p3[1]);
-		context.closePath();
-	}
-	
-	// 四角形を描画する関数
-	// 引数は物理座標の2次元ベクトル
-	function drawSquare(p1,p2,p3,p4){
-		context.beginPath();
-		context.moveTo( p1[0], p1[1]);
-		context.lineTo( p2[0], p2[1]);
-		context.lineTo( p3[0], p3[1]);
-		context.lineTo( p4[0], p4[1]);
-		context.closePath();
-		context.stroke();
-		context.fill();
-	}
-	
-	// 四角形を描画する関数
-	// 引数は物理座標の2次元ベクトル
-	function drawSquareS(p1,p2,p3,p4){
-		context.beginPath();
-		context.moveTo( p1[0], p1[1]);
-		context.lineTo( p2[0], p2[1]);
-		context.lineTo( p3[0], p3[1]);
-		context.lineTo( p4[0], p4[1]);
-		context.closePath();
-		context.stroke();
-	}
-	
-	// 円を描画する関数
-	// 引数1 x: 物理座標系の位置x
-	// 引数2 y: 物理座標系の位置y
-	// 引数3 radius: 物理座標系における半径
-	function drawCircle(p, radius){
-		context.beginPath();
-		context.arc( p[0], p[1], radius, 0, 2*Math.PI, true);
-		context.stroke();
-		context.fill();
-	}
-	function drawCircleS(p, radius){
-		context.beginPath();
-		context.arc( p[0], p[1], radius, 0, 2*Math.PI, true);
-		context.stroke();
-	}
-
-    // 変形前後の三角形からあふぃん変換行列を計算する関数
-    // 引数1: 変形前の三角形頂点の位置ベクトル 3 x 2
-    // 引数2: 変形後の三角形頂点の位置ベクトル 3 x 2
-	function getAffineMat(tri1, tri2) {
-		var after = [ 
-			[tri2[1][0] - tri2[0][0], tri2[2][0] - tri2[0][0] ],
-			[tri2[1][1] - tri2[0][1], tri2[2][1] - tri2[0][1] ]
-		]
-		var befor = [
-			[tri1[1][0] - tri1[0][0], tri1[2][0] - tri1[0][0]],
-			[tri1[1][1] - tri1[0][1], tri1[2][1] - tri1[0][1]]
-		]
-		var befinv = numeric.inv(befor);
-		var affmat = numeric.dot(after, befinv);
-		var rel = numeric.sub(tri2[0], tri1[0]);
-		var aff = [affmat[0][0], affmat[1][0], affmat[0][1], affmat[1][1], rel[0], rel[1]];
-		return aff;
-	}
 	
 	
 } );
