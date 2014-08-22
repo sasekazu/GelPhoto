@@ -6,16 +6,16 @@
 		<link rel="stylesheet" type="text/css" href="css/normalize.css" />
 		<link rel="stylesheet" type="text/css" href="css/index.css">
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-		<script type="text/javascript" src="js/numeric-1.2.6.min.js"></script>
-		<script type="text/javascript" src="js/numeric-myPatch.js"></script>
-		<script type="text/javascript" src="js/outline.js"></script>    
-		<script type="text/javascript" src="js/delaunay.js"></script>    
-		<script type="text/javascript" src="js/fem.js"></script>
-		<script type="text/javascript" src="js/FEMSparse.js"></script>
+		<script type="text/javascript" src="js/NumericJavascript/numeric-1.2.6.min.js"></script>
+		<script type="text/javascript" src="js/NumericJavascript/numeric-myPatch.js"></script>
+		<script type="text/javascript" src="js/myLib/outline.js"></script>    
+		<script type="text/javascript" src="js/myLib/delaunay.js"></script>    
+		<script type="text/javascript" src="js/myLib/fem.js"></script>
+		<script type="text/javascript" src="js/myLib/FEMSparse.js"></script>
 		<!-- <script type="text/javascript" src="vibrate.js"></script> -->
-		<script type="text/javascript" src="js/drawUtil.js"></script>    
+		<script type="text/javascript" src="js/myLib/drawUtil.js"></script>    
+		<script type="text/javascript" src="js/myLib/mouseUtil.js"></script>    
 		<script type="text/javascript" src="js/parameters.js"></script>    
-		<script type="text/javascript" src="js/mouseUtil.js"></script>    
 		<script type="text/javascript" src="js/main.js"></script>    
 	</head>
 	<body>
@@ -33,8 +33,8 @@
 				<label><input id="gravityCheckBox" type="checkbox" checked>重力</label>
 				<label><input id="selfCollisionCheckBox" type="checkbox" /> 接触</label>       	
 				<label><input id="fractureCheckBox" type="checkbox">破壊</label><br />
-				<label><input id="meshCheckBox" type="checkbox" checked>メッシュ表示</label><br />
-				<label><input id="dataCheckBox" type="checkbox" checked>データ可視化</label><br />
+				<label><input id="meshCheckBox" type="checkbox" >メッシュ表示</label><br />
+				<label><input id="dataCheckBox" type="checkbox" >データ可視化</label><br />
 				<label><input id="audioCheckBox" type="checkbox" checked>音声</label><br />
 				<input id="uploadFile" name="image" type="file" />
 			</div>

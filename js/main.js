@@ -1,7 +1,7 @@
 // JavaScript Document
 /// <reference path="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js" />
-/// <reference path="numeric-1.2.6.min.js" />
-/// <reference path="outline.js" />
+/// <reference path="NumericJavascript/numeric-1.2.6.min.js" />
+/// <reference path="NumericJavascript/outline.js" />
 /// <reference path="delaunay.js" />
 /// <reference path="fem.js" />
 /// <reference path="vibrate.js" />
