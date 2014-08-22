@@ -6,13 +6,14 @@
 /// <reference path="fem.js" />
 /// <reference path="vibrate.js" />
 /// <reference path="drawUtil.js" />
+/// <reference path="drawUtilForFEM.js" />
 /// <reference path="parameters.js" />
 /// <reference path="globalVals.js" />
 /// <reference path="callbacks.js" />
 /// <reference path="eventes.js" />
 /// <reference path="mouseUtil.js" />
 /// <reference path="ImageManager.js" />
-/// <reference path="drawUtilForFEM.js" />
+/// <reference path="jelly.js" />
 
 
 $(document).ready(function () {
@@ -70,12 +71,17 @@ $(document).ready(function () {
 	});
 	// 最初の画像を選択
 	imgMg.readImage(defaultImg  + new Date().getTime());
-
+	
+	var firstFlag = true;
 	// 画像が読み込まれたときに実行
 	imgMg.img.onload=function () {
 		imgMg.calcDrawParam(canvas);
 		cv=new ClosedCurve(minlen);
 		outline=new Outline();
+		if(firstFlag) {
+			jellyMesh();
+			firstFlag = false;
+		}
 		mainloop();
 	}
 
