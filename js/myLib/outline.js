@@ -12,30 +12,30 @@ function LineSeg(st, ed){
 	this.b = this.start[0] - this.end[0];
 	this.c = (this.end[0]-this.start[0])*this.start[1]
 			- (this.end[1]-this.start[1])*this.start[0]; 
-    this.vec = numeric.sub(this.end, this.start);
-    this.len = numeric.norm2(this.vec);
+	this.vec = numeric.sub(this.end, this.start);
+	this.len = numeric.norm2(this.vec);
 }
 
 // セッタ
 LineSeg.prototype.setStart = function(st){
-    this.start[0] = st[0];
-    this.start[1] = st[1];
+	this.start[0] = st[0];
+	this.start[1] = st[1];
 	this.a = this.end[1] - this.start[1];
 	this.b = this.start[0] - this.end[0];
 	this.c = (this.end[0]-this.start[0])*this.start[1]
 			- (this.end[1]-this.start[1])*this.start[0]; 
-    this.vec = numeric.sub(this.end, this.start);
-    this.len = numeric.norm2(this.vec);
+	this.vec = numeric.sub(this.end, this.start);
+	this.len = numeric.norm2(this.vec);
 }
 LineSeg.prototype.setEnd = function(ed){
-    this.end[0] = ed[0];
-    this.end[1] = ed[1];
+	this.end[0] = ed[0];
+	this.end[1] = ed[1];
 	this.a = this.end[1] - this.start[1];
 	this.b = this.start[0] - this.end[0];
 	this.c = (this.end[0]-this.start[0])*this.start[1]
 			- (this.end[1]-this.start[1])*this.start[0]; 
-    this.vec = numeric.sub(this.end, this.start);
-    this.len = numeric.norm2(this.vec);
+	this.vec = numeric.sub(this.end, this.start);
+	this.len = numeric.norm2(this.vec);
 }
 
 // 線分との交差判定
@@ -64,11 +64,11 @@ LineSeg.prototype.crossPos = function (ls) {
 
 // x軸に平行な直線(y=*)との交点のx座標
 LineSeg.prototype.crossXpos = function(y){
-    return (-this.b*y-this.c)/this.a;
+	return (-this.b*y-this.c)/this.a;
 }
 // y軸に平行な直線(x=*)との交点のx座標
 LineSeg.prototype.crossYpos = function(x){
-    return (-this.a*x-this.c)/this.b;
+	return (-this.a*x-this.c)/this.b;
 }
 
 //////////////////////////////////////////////////
@@ -88,7 +88,7 @@ ClosedCurve.prototype.addPoint = function (pos) {
 		this.endpos[0] = pos[0];
 		this.endpos[1] = pos[1];
 	}
-    // すでに閉じてる場合は何もしない
+	// すでに閉じてる場合は何もしない
 	else if (this.closedFlag) {
 	}
 	else {
@@ -97,30 +97,30 @@ ClosedCurve.prototype.addPoint = function (pos) {
 		var len = numeric.norm2(rel);
 		// 距離がminlen以上ならば追加する
 		if (len >= this.minlen) {
-		    var ls = new LineSeg(this.endpos, pos);
-		    this.lines.push(ls);
-		    this.endpos = pos;
+			var ls = new LineSeg(this.endpos, pos);
+			this.lines.push(ls);
+			this.endpos = pos;
 		} else {
-            return;
+			return;
 		}
 		// 交差判定を行う
 		// 追加した線分の隣以外の線分と比較する
-	    var doneFlag = false;
+		var doneFlag = false;
 		if (this.lines.length > 1) {
-		    for (var i = 0; i < this.lines.length - 2; i++) {
-		        if (this.lines[this.lines.length - 1].intersect(this.lines[i])) {
-		            this.closedFlag = true;
-		            var cross = this.lines[this.lines.length - 1].crossPos(this.lines[i]);
-		            this.endpos = numeric.mul(cross, 1);
-                    // 切れ端を削除する
-                    this.lines.splice(0,i);
-                    // 閉曲線の開始点を修正する
-                    this.lines[0].setStart(this.endpos);
-                    this.lines[this.lines.length-1].setEnd(this.endpos);
-		            doneFlag = true;
-		            break;
-		        }
-		    }
+			for (var i = 0; i < this.lines.length - 2; i++) {
+				if (this.lines[this.lines.length - 1].intersect(this.lines[i])) {
+					this.closedFlag = true;
+					var cross = this.lines[this.lines.length - 1].crossPos(this.lines[i]);
+					this.endpos = numeric.mul(cross, 1);
+					// 切れ端を削除する
+					this.lines.splice(0,i);
+					// 閉曲線の開始点を修正する
+					this.lines[0].setStart(this.endpos);
+					this.lines[this.lines.length-1].setEnd(this.endpos);
+					doneFlag = true;
+					break;
+				}
+			}
 		}
 
 		// 最初の1点の近傍の場合交差とみなす
@@ -130,36 +130,36 @@ ClosedCurve.prototype.addPoint = function (pos) {
 			if (slen < this.minlen * 0.5) {
 				this.closedFlag = true;
 				this.endpos = numeric.mul(this.lines[0].start,1);
-                this.lines[this.lines.length-1].setEnd(this.endpos);
-                doneFlag = true;
+				this.lines[this.lines.length-1].setEnd(this.endpos);
+				doneFlag = true;
 			}
 		}
-        
-        // 線が長すぎる場合、線分を分割する
-        if (this.lines[this.lines.length-1].len > this.minlen*2) {
-            var div = ~~(this.lines[this.lines.length - 1].len/this.minlen);
-            var dvec = numeric.div(this.lines[this.lines.length-1].vec,div);
-            this.lines[this.lines.length-1].end = numeric.add(this.lines[this.lines.length-1].start,dvec);
-            for (var i = 0; i < div - 1; i++) {
-                var svec = numeric.mul(this.lines[this.lines.length-1].end,1);
-                var evec = numeric.add(svec,dvec);
-                var nl = new LineSeg(svec,evec);
-                this.lines.push(nl);
-            }
+		
+		// 線が長すぎる場合、線分を分割する
+		if (this.lines[this.lines.length-1].len > this.minlen*2) {
+			var div = ~~(this.lines[this.lines.length - 1].len/this.minlen);
+			var dvec = numeric.div(this.lines[this.lines.length-1].vec,div);
+			this.lines[this.lines.length-1].end = numeric.add(this.lines[this.lines.length-1].start,dvec);
+			for (var i = 0; i < div - 1; i++) {
+				var svec = numeric.mul(this.lines[this.lines.length-1].end,1);
+				var evec = numeric.add(svec,dvec);
+				var nl = new LineSeg(svec,evec);
+				this.lines.push(nl);
+			}
 		}
-        
+		
 	}
 }
 
 // 閉曲線同士の交差判定
 ClosedCurve.prototype.intersect = function (cv) {
-    for (var i = 0; i < this.lines.length; i++) {
-        for (var j = 0; j < cv.lines.length; j++) {
-            if(this.lines[i].intersect(cv.lines[j]))
-                return true;
-        }
-    }
-    return false;
+	for (var i = 0; i < this.lines.length; i++) {
+		for (var j = 0; j < cv.lines.length; j++) {
+			if(this.lines[i].intersect(cv.lines[j]))
+				return true;
+		}
+	}
+	return false;
 }
 
 
@@ -187,18 +187,18 @@ ClosedCurve.prototype.pointInOrOut=function (p) {
 		if(interx<p[0]) continue;
 		// 交点が線分のend側だった場合、交わっていないとみなす
 		if(
-            Math.abs(interx-this.lines[j].end[0])<ZERO
-            &&
-            Math.abs(p[1]-this.lines[j].end[1])<ZERO
-            ) {
+			Math.abs(interx-this.lines[j].end[0])<ZERO
+			&&
+			Math.abs(p[1]-this.lines[j].end[1])<ZERO
+			) {
 			continue;
 		}
 		// 交点が線分のstart側だが接点である場合、交わっていないとみなす
 		if(
-            Math.abs(interx-this.lines[j].start[0])<ZERO
-            &&
-            Math.abs(p[1]-this.lines[j].start[1])<ZERO
-            ) {
+			Math.abs(interx-this.lines[j].start[0])<ZERO
+			&&
+			Math.abs(p[1]-this.lines[j].start[1])<ZERO
+			) {
 			var thisy=this.lines[j].start[1];
 			var nexty=this.lines[j].end[1];
 			var befline=j-1;
@@ -217,28 +217,28 @@ ClosedCurve.prototype.pointInOrOut=function (p) {
 /////// 輪郭クラス
 //////////////////////////////////////////////////
 function Outline() {
-    this.closedCurves = [];
-    this.xmin = 0;
-    this.ymin = 0;
-    this.xmax = 0;
-    this.ymax = 0;
+	this.closedCurves = [];
+	this.xmin = 0;
+	this.ymin = 0;
+	this.xmax = 0;
+	this.ymax = 0;
 }
 
 // 閉曲線の追加
 Outline.prototype.addClosedLine  = function(cl){
-    this.closedCurves.push(cl);
-    var x = [];
-    var y = [];
-    for(var i=0; i<this.closedCurves.length; i++){
-        for (var j = 0; j < this.closedCurves[i].lines.length; j++) {
-            x.push(this.closedCurves[i].lines[j].start[0]);
-            y.push(this.closedCurves[i].lines[j].start[1]);
-        }
-    }
-    this.xmin = Math.min.apply(null, x);
-    this.xmax = Math.max.apply(null, x);
-    this.ymin = Math.min.apply(null, y);
-    this.ymax = Math.max.apply(null, y);
+	this.closedCurves.push(cl);
+	var x = [];
+	var y = [];
+	for(var i=0; i<this.closedCurves.length; i++){
+		for (var j = 0; j < this.closedCurves[i].lines.length; j++) {
+			x.push(this.closedCurves[i].lines[j].start[0]);
+			y.push(this.closedCurves[i].lines[j].start[1]);
+		}
+	}
+	this.xmin = Math.min.apply(null, x);
+	this.xmax = Math.max.apply(null, x);
+	this.ymin = Math.min.apply(null, y);
+	this.ymax = Math.max.apply(null, y);
 }
 
 // 点の内外判定
@@ -246,68 +246,68 @@ Outline.prototype.addClosedLine  = function(cl){
 // mode == "radius" のとき頂点から半径minlen以内の点は外側とみなす
 Outline.prototype.pointInOrOut = function (p, mode) {
 
-    if(p.length==0)return flase;
+	if(p.length==0)return flase;
 
-    // +x方向へレイを出す
-    var countxp=0;
-    var ZERO = 1e-10;
-    for(var i=0; i<this.closedCurves.length; i++) {
-        for(var j=0; j<this.closedCurves[i].lines.length; j++) {
+	// +x方向へレイを出す
+	var countxp=0;
+	var ZERO = 1e-10;
+	for(var i=0; i<this.closedCurves.length; i++) {
+		for(var j=0; j<this.closedCurves[i].lines.length; j++) {
 
-            // pを通りx軸に平行な直線に交わるかどうか
-            var dys = this.closedCurves[i].lines[j].start[1]-p[1];
-            var dye = this.closedCurves[i].lines[j].end[1]-p[1];
-            if(Math.abs(dys)<ZERO)dys=0;
-            if(Math.abs(dye)<ZERO)dye=0;
-            if(dys*dye>0) continue;
-            // 線分がx軸に平行な場合は除外
-            if(Math.abs(this.closedCurves[i].lines[j].a)<ZERO) continue;
-            // pを通り+x方向に出したレイが線分と交わるかどうか
-            var interx = this.closedCurves[i].lines[j].crossXpos(p[1]);
-            if(interx<p[0]) continue;
-            // 交点が線分のend側だった場合、交わっていないとみなす
-            if(
-                Math.abs(interx-this.closedCurves[i].lines[j].end[0])<ZERO
-                &&
-                Math.abs(p[1]-this.closedCurves[i].lines[j].end[1])<ZERO
-              ) {
-                continue;
-            }
-            // 交点が線分のstart側だが接点である場合、交わっていないとみなす
-            if(
-                Math.abs(interx-this.closedCurves[i].lines[j].start[0])<ZERO
-                &&
-                Math.abs(p[1]-this.closedCurves[i].lines[j].start[1])<ZERO
-              ) {
-                var thisy = this.closedCurves[i].lines[j].start[1];
-                var nexty = this.closedCurves[i].lines[j].end[1];
-                var befline = j-1;
-                if(j==0)befline=this.closedCurves[i].lines.length-1;
-                var befry = this.closedCurves[i].lines[befline].start[1];
-                if((nexty-thisy)*(befry-thisy)>=0) {
-                    continue;
-                }
-            }
+			// pを通りx軸に平行な直線に交わるかどうか
+			var dys = this.closedCurves[i].lines[j].start[1]-p[1];
+			var dye = this.closedCurves[i].lines[j].end[1]-p[1];
+			if(Math.abs(dys)<ZERO)dys=0;
+			if(Math.abs(dye)<ZERO)dye=0;
+			if(dys*dye>0) continue;
+			// 線分がx軸に平行な場合は除外
+			if(Math.abs(this.closedCurves[i].lines[j].a)<ZERO) continue;
+			// pを通り+x方向に出したレイが線分と交わるかどうか
+			var interx = this.closedCurves[i].lines[j].crossXpos(p[1]);
+			if(interx<p[0]) continue;
+			// 交点が線分のend側だった場合、交わっていないとみなす
+			if(
+				Math.abs(interx-this.closedCurves[i].lines[j].end[0])<ZERO
+				&&
+				Math.abs(p[1]-this.closedCurves[i].lines[j].end[1])<ZERO
+			  ) {
+				continue;
+			}
+			// 交点が線分のstart側だが接点である場合、交わっていないとみなす
+			if(
+				Math.abs(interx-this.closedCurves[i].lines[j].start[0])<ZERO
+				&&
+				Math.abs(p[1]-this.closedCurves[i].lines[j].start[1])<ZERO
+			  ) {
+				var thisy = this.closedCurves[i].lines[j].start[1];
+				var nexty = this.closedCurves[i].lines[j].end[1];
+				var befline = j-1;
+				if(j==0)befline=this.closedCurves[i].lines.length-1;
+				var befry = this.closedCurves[i].lines[befline].start[1];
+				if((nexty-thisy)*(befry-thisy)>=0) {
+					continue;
+				}
+			}
 
-            // 頂点の半径サイズ以内であれば外側にする
-            if(mode=="radius") {
-                var rel, len;
-                var endflag=false;
-                for(var k=0; k<this.closedCurves.length; k++) {
-                    for(var l=0; l<this.closedCurves[k].lines.length; l++) {
-                        rel=numeric.sub(p, this.closedCurves[k].lines[l].start);
-                        len=numeric.norm2(rel);
-                        if(len<this.closedCurves[k].minlen) endflag=true;
-                    }
-                    if(endflag) break;
-                }
-                if(endflag) continue;
-            }
+			// 頂点の半径サイズ以内であれば外側にする
+			if(mode=="radius") {
+				var rel, len;
+				var endflag=false;
+				for(var k=0; k<this.closedCurves.length; k++) {
+					for(var l=0; l<this.closedCurves[k].lines.length; l++) {
+						rel=numeric.sub(p, this.closedCurves[k].lines[l].start);
+						len=numeric.norm2(rel);
+						if(len<this.closedCurves[k].minlen) endflag=true;
+					}
+					if(endflag) break;
+				}
+				if(endflag) continue;
+			}
 
-            ++countxp;
-        }
-    }
+			++countxp;
+		}
+	}
 
-    return countxp%2==1;
+	return countxp%2==1;
 
 }

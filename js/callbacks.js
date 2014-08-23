@@ -1,5 +1,8 @@
-﻿/// <reference path="myLib/drawUtil.js" />
-/// <reference path="myLib/drawUtilForFEM.js" />
+﻿// JavaScript Document
+/// <reference path="~/js/globalVals.js" />
+/// <reference path="~/js/myLib/outline.js" />
+/// <reference path="~/js/myLib/drawUtil.js" />
+/// <reference path="~/js/myLib/drawUtilForFEM.js" />
 	
 /////////////////////////////////////////////////////////
 ////////　 アウトライン作成関数
@@ -20,8 +23,9 @@ function drawOutLineFunc(){
 						}
 					}
 					// 交差がなければ輪郭に追加する
-					if(!intFlag)
+					if(!intFlag) {
 						outline.addClosedLine(cv);
+					}
 					drawingFlag = false;
 					// 作業用の閉曲線インスタンスを初期化
 					cv = new ClosedCurve(minlen);

@@ -1,6 +1,6 @@
 ﻿// JavaScript Document
-/// <reference path="parameters.js" />
-/// <reference path="callbacks.js" />
+/// <reference path="~/js/myLib/outline.js" />
+/// <reference path="~/js/callbacks.js" />
 
 
 // 加速度センサ値取得イベント
