@@ -36,10 +36,16 @@ function drawOutLine(context, outline) {
 function drawMesh(context, mesh) {
 	var color = 'rgb(0,0,0)';
 	context.strokeStyle = color;
+	context.fillStyle='pink';
+	context.globalAlpha = 0.7;
 	for (var i = 0; i < mesh.tri.length; ++i) {
 		var tri = [mesh.tri[i][0], mesh.tri[i][1], mesh.tri[i][2]];
+		if(mesh.triInOut[i]) {
+			drawTri(context, mesh.dPos[tri[0]], mesh.dPos[tri[1]], mesh.dPos[tri[2]]);
+		}
 		drawTriS(context, mesh.dPos[tri[0]], mesh.dPos[tri[1]], mesh.dPos[tri[2]]);
 	}
+	context.globalAlpha = 1.0;
 }
 
 

@@ -58,13 +58,14 @@ Circumcircle.prototype.calcCenter = function(){
 //////////////////////////////////////////////////////
 function DelaunayGen(outline, size){
 
-    this.outline = outline;
-    this.size = size;
+	this.outline = outline;
+	this.size = size;
 	this.step = 0;
 	this.pos = new Array();	// 点の数 x 2(x,y)
 	this.dPos = new Array();	// 動的に変わる点
 	this.tri = new Array();	// 三角形の数 x 3(三角形頂点の点番号)
 	this.boundary = []; // 頂点が境界かどうかの判別フラグ 0 or 1
+	this.triInOut = []; // triに対応する三角形が輪郭の内側ならばtrueを格納する配列
 	this.init();
 	this.bigTri();
 	
@@ -74,34 +75,32 @@ function DelaunayGen(outline, size){
 // pos, boudary初期化メソッド
 DelaunayGen.prototype.init = function(){
 
+	// 境界上の点の追加
+	for(var i=0; i<this.outline.closedCurves.length; i++) {
+		for(var j=0; j<this.outline.closedCurves[i].lines.length; j++) {
+			var p = numeric.mul(this.outline.closedCurves[i].lines[j].start,1);
+			this.pos.push(p);
+			this.boundary.push(1);
+		}
+	}
 
-
-    // 境界上の点の追加
-   	for(var i=0; i<this.outline.closedCurves.length; i++) {
-   	    for(var j=0; j<this.outline.closedCurves[i].lines.length; j++) {
-            var p = numeric.mul(this.outline.closedCurves[i].lines[j].start,1);
-		    this.pos.push(p);
-		    this.boundary.push(1);
-   	    }
-   	}
-
-    // 境界内部の点の追加
-    var width = this.outline.xmax - this.outline.xmin
-    var height = this.outline.ymax - this.outline.ymin
-    var x0 = this.outline.xmin;
-    var y0 = this.outline.ymin;
-    var divx = ~~(width /this.size);
-    var divy = ~~(height / this.size);
-    for (var i = 0; i < divy+2; i++) {
-        for (var j = 0; j < divx+2; j++) {
-            var x = x0+this.size*j;
-            var y = y0+this.size*i;
-            if(this.outline.pointInOrOut([x, y], "radius")) {
-                this.pos.push([x, y]);
-                this.boundary.push(0);
-            }
-        }
-    }
+	// 境界内部の点の追加
+	var width = this.outline.xmax - this.outline.xmin
+	var height = this.outline.ymax - this.outline.ymin
+	var x0 = this.outline.xmin;
+	var y0 = this.outline.ymin;
+	var divx = ~~(width /this.size);
+	var divy = ~~(height / this.size);
+	for (var i = 0; i < divy+2; i++) {
+		for (var j = 0; j < divx+2; j++) {
+			var x = x0+this.size*j;
+			var y = y0+this.size*i;
+			if(this.outline.pointInOrOut([x, y], "radius")) {
+				this.pos.push([x, y]);
+				this.boundary.push(0);
+			}
+		}
+	}
 
 }
 
@@ -109,16 +108,28 @@ DelaunayGen.prototype.init = function(){
 // ドロネー分割クラス
 // tri初期化メソッド
 DelaunayGen.prototype.bigTri = function(){
-    var xmin = this.outline.xmin;
-    var xmax = this.outline.xmax;
-    var ymin = this.outline.ymin;
-    var ymax = this.outline.ymax;
+	var margin;
+	if(this.outline.xmax-this.outline.xmin>this.outline.ymax-this.outline.ymin) {
+		margin=this.outline.xmax-this.outline.xmin;
+	} else {
+		margin=this.outline.ymax-this.outline.ymin;
+	}
+	var xmin = this.outline.xmin-margin;
+	var xmax = this.outline.xmax+margin;
+	var ymin = this.outline.ymin-margin;
+	var ymax = this.outline.ymax+margin;
+	// 下の点
 	this.dPos.push([(xmax+xmin)*0.5, ymin-(xmax-xmin)*0.5*1.73205080757]);
+	// 上の点1
 	this.dPos.push([(xmax+xmin)*0.5-(xmax-xmin)*0.5-(ymax-ymin)/1.73205080757, ymax]);
+	// 上の点2
 	this.dPos.push([(xmax+xmin)*0.5+(xmax-xmin)*0.5+(ymax-ymin)/1.73205080757, ymax]);
 	var triTmp = [0,1,2];
 	this.tri.push(triTmp);
-    this.finishedFlag = false;
+	this.finishedFlag = false;
+	this.boundary.push(0);
+	this.boundary.push(0);
+	this.boundary.push(0);
 }
 
 
@@ -149,15 +160,13 @@ DelaunayGen.prototype.addPoint = function(){
 		var distVec = numeric.sub(c.p, p);
 		var dist = numeric.norm2(distVec);
 		
-		if(
-			dist < c.rad
-		){
+		if(dist < c.rad	){
 			// 外接円が入力点を内包する
 			// 三角形を記録する
 			focusedTri.push(i);
 		}
 	}
-	
+
 	focusedTri.sort(
 		function(val1,val2){
 			return val2 - val1;
@@ -202,7 +211,14 @@ DelaunayGen.prototype.addPoint = function(){
 		this.tri.push(newTri);
 	}
 	
-	var tritemp2 = numeric.mul(this.tri,1);
+	// triInOutの作成
+	this.triInOut = [];
+	for(var i=0; i<this.tri.length; i++){
+		var tricenter = numeric.add(this.dPos[(this.tri[i][0])], this.dPos[(this.tri[i][1])]);
+		tricenter = numeric.add(tricenter, this.dPos[this.tri[i][2]]);
+		tricenter = numeric.div(tricenter, 3);
+		this.triInOut.push(this.outline.pointInOrOut(tricenter));
+	}
 	
 	this.step++;
 	return true;
@@ -210,9 +226,9 @@ DelaunayGen.prototype.addPoint = function(){
 
 DelaunayGen.prototype.meshGen = function(){
 
-    // 完了しているならば実行しない
-    if(this.finishedFlag)
-        return;
+	// 完了しているならば実行しない
+	if(this.finishedFlag)
+		return;
 
 	// すべての入力点が追加されるまで実行
 	while(1){
@@ -222,13 +238,15 @@ DelaunayGen.prototype.meshGen = function(){
 	
 	// 輪郭の外側の三角形を削除する
 	var remTri = [];
+	this.triInOut = [];
 	for(var i=0; i<this.tri.length; i++){
-        var tricenter = numeric.add(this.dPos[(this.tri[i][0])], this.dPos[(this.tri[i][1])]);
-        tricenter = numeric.add(tricenter, this.dPos[this.tri[i][2]]);
-        tricenter = numeric.div(tricenter, 3);
-        if(!this.outline.pointInOrOut(tricenter)) {
-				remTri.push(i);
-        }
+		var tricenter = numeric.add(this.dPos[(this.tri[i][0])], this.dPos[(this.tri[i][1])]);
+		tricenter = numeric.add(tricenter, this.dPos[this.tri[i][2]]);
+		tricenter = numeric.div(tricenter, 3);
+		this.triInOut.push(this.outline.pointInOrOut(tricenter));
+		if(!this.outline.pointInOrOut(tricenter)) {
+			remTri.push(i);
+		}
 	}
 
 	// 削除三角リストを大きい順に並べ替える
@@ -247,7 +265,7 @@ DelaunayGen.prototype.meshGen = function(){
 	// dPosを削除した分、全体から3引く
 	this.tri = numeric.sub(this.tri,3);
 	// 完了フラグをオンにする
-    this.finishedFlag = true;
+	this.finishedFlag = true;
 }
 
 // ドロネー分割クラス

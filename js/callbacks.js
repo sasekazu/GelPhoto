@@ -53,11 +53,34 @@ function drawOutLineFunc(){
 function generateMeshFunc() {
 	// 描画
 	if (!mesh.addPoint()) {
-		context.setTransform(1, 0, 0, 1, 0, 0);
-		context.clearRect(0, 0, canvasWidth, canvasHeight);
-		imgMg.drawImage(context);
-		drawMesh(context, mesh);
+		mesh.meshGen();
+		for(var i = 0; i < 20; ++i) {
+			mesh.laplacianSmoothing();
+			// 描画
+			context.setTransform(1, 0, 0, 1, 0, 0);
+			context.clearRect(0, 0, canvasWidth, canvasHeight);
+			if(!meshFlag) {
+				imgMg.drawImage(context);
+			}
+			drawMesh(context, mesh);
+		}
+		// 物理モデルの初期化をメッシュ完成直後に行う
+		physicsModel = new FEM(mesh.dPos, mesh.tri, outline);
+		physicsModel.gripRad=minlen;
+		state="physics";
+		loopFunc = physicsFunc;
+		console.log("posNum "+physicsModel.pos.length);
+		console.log("triNum "+physicsModel.tri.length);
 	}
+	// 描画
+	
+	context.setTransform(1, 0, 0, 1, 0, 0);
+	context.clearRect(0, 0, canvasWidth, canvasHeight);
+	if(!meshFlag) {
+		imgMg.drawImage(context);
+	}
+	drawMesh(context, mesh);
+
 }
 
 //////////////////////////////////////////////////////////

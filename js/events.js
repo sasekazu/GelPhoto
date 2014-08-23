@@ -44,12 +44,12 @@ function initRadioEvent() {
 		mountFlag = ($(this).val() == "mount");
 		if(mountFlag) {
 			// マウントモードに切り替えたとき重力をオフ
-			console.log("mount");
 			$('#gravityCheckBox').prop('checked', false);
+			gravityFlag = $(this).is(':checked');
 		} else {
-			console.log("pop");
 			// ポップモードに切り替えたとき重力をオン
 			$('#gravityCheckBox').prop('checked', true);
+			gravityFlag = $(this).is(':checked');
 		}
 	});  
 }
@@ -81,6 +81,10 @@ function initButtonEvent() {
 		}
 
 		mesh=new DelaunayGen(outline, minlen);
+
+		loopFunc = generateMeshFunc;
+
+		/*
 		while(mesh.addPoint()) {
 			;
 		};
@@ -90,7 +94,6 @@ function initButtonEvent() {
 		}
 
 		// 物理モデルの初期化をメッシュ完成直後に行う
-		//physicsModel = new FEMSparse(mesh.dPos, mesh.tri);
 		physicsModel = new FEM(mesh.dPos, mesh.tri, outline);
 		physicsModel.gripRad=minlen;
 
@@ -98,6 +101,7 @@ function initButtonEvent() {
 		loopFunc = physicsFunc;
 		console.log("posNum "+physicsModel.pos.length);
 		console.log("triNum "+physicsModel.tri.length);
+		*/
 	});
 
 	// 固定領域選択ボタン

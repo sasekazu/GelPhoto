@@ -45,7 +45,7 @@ function FEM(initpos, tri){
 	var density = 0.001;    // 密度 [kg/mm3]
 	var thickness = 1;  // 物体の厚さ [mm]
 	this.mass = [];     // 節点の等価質量
-	this.alpha = 0.2;  // Mに作用するレイリー減衰のパラメータ
+	this.alpha = 0.02;  // Mに作用するレイリー減衰のパラメータ
 	this.beta = 0.01;    // Kに作用するレイリー減衰のパラメータ
 	this.gravity = { x: 0, y: 100 };
 

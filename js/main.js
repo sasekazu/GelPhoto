@@ -60,8 +60,12 @@ $(document).ready(function () {
 				imgMg.calcDrawParam(canvas);
 				// 画像以外の変数の初期化
 				state="drawOutLine";
+				loopFunc = drawOutLineFunc;
+				$('#meshCheckBox').prop('checked', false);
+				meshFlag = $('#meshCheckBox').is(':checked');
 				cv=new ClosedCurve(minlen);
 				outline=new Outline();
+
 				mainloop();
 			}
 			// 画像のURLをソースに設定
@@ -80,7 +84,7 @@ $(document).ready(function () {
 		cv=new ClosedCurve(minlen);
 		outline=new Outline();
 		if(firstFlag) {
-			//jellyMesh();
+			jellyMesh();
 			firstFlag = false;
 		}
 		mainloop();

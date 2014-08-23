@@ -1,7 +1,7 @@
 ﻿
 // パラメータ
 var gravity = {x:0, y:0}; // 重力加速度[G]
-var minlen=20;
+var minlen=40;
 var imgSc = 1;
 var defaultImg = "jelly.jpg?";
 
