@@ -69,8 +69,17 @@ function generateMeshFunc() {
 			drawMesh(context, mesh);
 		}
 		// 物理モデルの初期化をメッシュ完成直後に行う
-		physicsModel = new FEM(mesh.dPos, mesh.tri, outline);
-		physicsModel.gripRad=minlen;
+		var param = {
+			young : Number($("#youngTx").val()),
+			poisson : Number($("#poissonTx").val()),
+			alpha : Number($("#alphaTx").val()),
+			beta : Number($("#betaTx").val()),
+			density : Number($("#densityTx").val()),
+			thickness : Number($("#thicknessTx").val()),
+			gripRad : minlen
+		};
+
+		physicsModel = new FEM(mesh.dPos, mesh.tri, param);
 		state="physics";
 		loopFunc = physicsFunc;
 		console.log("posNum "+physicsModel.pos.length);

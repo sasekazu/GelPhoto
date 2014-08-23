@@ -47,11 +47,53 @@ function initRadioEvent() {
 		if(mountFlag) {
 			// マウントモードに切り替えたとき重力をオフ
 			$('#gravityCheckBox').prop('checked', false);
-			gravityFlag = $(this).is(':checked');
+			gravityFlag = false;
+
+			/*
+			$("#youngTx").val("10");
+			$("#poissonTx").val("0.5");
+			$("#densityTx").val("0.001");
+			$("#thicknessTx").val("1.0");
+			$("#alphaTx").val("0.01");
+			$("#betaTx").val("0.01");
+
+			var param = {
+				young : Number($("#youngTx").val()),
+				poisson : Number($("#poissonTx").val()),
+				alpha : Number($("#alphaTx").val()),
+				beta : Number($("#betaTx").val()),
+				density : Number($("#densityTx").val()),
+				thickness : Number($("#thicknessTx").val()),
+				gripRad : minlen
+			};
+			physicsModel.applyParams(param);
+			*/
+
 		} else {
 			// ポップモードに切り替えたとき重力をオン
 			$('#gravityCheckBox').prop('checked', true);
-			gravityFlag = $(this).is(':checked');
+			gravityFlag = true;
+
+			/*
+			$("#youngTx").val("100");
+			$("#poissonTx").val("0.5");
+			$("#densityTx").val("0.001");
+			$("#thicknessTx").val("1.0");
+			$("#alphaTx").val("0.01");
+			$("#betaTx").val("0.01");
+
+			var param = {
+				young : Number($("#youngTx").val()),
+				poisson : Number($("#poissonTx").val()),
+				alpha : Number($("#alphaTx").val()),
+				beta : Number($("#betaTx").val()),
+				density : Number($("#densityTx").val()),
+				thickness : Number($("#thicknessTx").val()),
+				gripRad : minlen
+			};
+			physicsModel.applyParams(param);
+			*/
+
 		}
 	});  
 }
@@ -123,6 +165,28 @@ function initButtonEvent() {
 		loopFunc = physicsFunc;
 	});
 
+	// 適用メッシュボタン
+	$("#applyMeshButton").click(function (){
+		minlen = Number($("#meshTx").val());
+		outline=new Outline();
+		cv=new ClosedCurve(minlen);
+		state = "drawOutLine";
+		loopFunc = drawOutLineFunc;
+	});
+	
+	// 適用ボタン
+	$("#applyButton").click(function(){
+		var param = {
+			young : Number($("#youngTx").val()),
+			poisson : Number($("#poissonTx").val()),
+			alpha : Number($("#alphaTx").val()),
+			beta : Number($("#betaTx").val()),
+			density : Number($("#densityTx").val()),
+			thickness : Number($("#thicknessTx").val()),
+			gripRad : minlen
+		};
+		physicsModel = new FEM(mesh.dPos, mesh.tri, param);
+	});
 	
 	//  マウス関連イベント
 

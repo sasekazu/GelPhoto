@@ -1,5 +1,6 @@
 ﻿// ゼリーの輪郭を切る関数
 function jellyMesh() {
+	minlen = 40;
 	outline=new Outline();
 	cv=new ClosedCurve(minlen);
 
@@ -45,7 +46,8 @@ function jellyMesh() {
 
 	// 物理モデルの初期化をメッシュ完成直後に行う
 	//physicsModel = new FEMSparse(mesh.dPos, mesh.tri);
-	physicsModel = new FEM(mesh.dPos, mesh.tri, outline);
+	param = {young:100, poisson:0.5, density:0.001, thickness:1.0, alpha:0.02, beta:0.01};
+	physicsModel = new FEM(mesh.dPos, mesh.tri, param);
 	physicsModel.gripRad=minlen;
 	state="physics";
 	loopFunc = physicsFunc;

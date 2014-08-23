@@ -11,7 +11,7 @@
 // FEMクラスの定義
 ////////////////////////////////////////////////////////////
 	
-function FEM(initpos, tri){
+function FEM(initpos, tri, param){
 	this.pos = numeric.clone(initpos);      // 節点現在位置
 	this.initpos = numeric.clone(initpos);  // 節点初期位置
 
@@ -40,19 +40,19 @@ function FEM(initpos, tri){
 	this.Be = [];           // 要素 ひずみマトリクス
 	this.De = [];           // 要素 ひずみ-応力変換マトリクス
 	this.Ke = [];           // 要素剛性マトリクス    
-	var young = 100;       // ヤング率 [Pa]
-	var poisson = 0.3;      // ポアソン比
-	var density = 0.001;    // 密度 [kg/mm3]
-	var thickness = 1;  // 物体の厚さ [mm]
+	this.young = param.young;       // ヤング率 [Pa]
+	this.poisson = param.poisson;      // ポアソン比
+	this.density = param.density;    // 密度 [kg/mm3]
+	this.thickness = param.thickness;  // 物体の厚さ [mm]
 	this.mass = [];     // 節点の等価質量
-	this.alpha = 0.02;  // Mに作用するレイリー減衰のパラメータ
-	this.beta = 0.01;    // Kに作用するレイリー減衰のパラメータ
+	this.alpha = param.alpha;  // Mに作用するレイリー減衰のパラメータ
+	this.beta = param.beta;    // Kに作用するレイリー減衰のパラメータ
 	this.gravity = { x: 0, y: 100 };
 
 	this.penalty = 100;	// ペナルティ法による自己接触の係数
 
 	// 要素剛性マトリクス作成
-	this.makeMatrixKe(young, poisson, density, thickness);
+	this.makeMatrixKe();
 
 	this.K = [];
 	this.makeMatrixK();
@@ -87,15 +87,25 @@ function FEM(initpos, tri){
 	for(var i = 0; i < this.tri.length; i++) {
 		this.removedFlag[i] = false;
 	}
-	this.thrPStress = 5*young;
+	this.thrPStress = 5*this.young;
 
 	// マウスでつまむためのメンバ変数
 	this.holdNode = [];
 	this.mousePosClick = [];
 	this.uClick = []; // setBoundaryのためのメンバ, クリック時のUベクトル
-	this.gripRad = 50; // setBoudaryにおける周辺拘束領域の半径
+	this.gripRad = param.gripRad; // setBoudaryにおける周辺拘束領域の半径
 }
 
+
+FEM.prototype.applyParams = function (param) {
+	this.young = param.young;       
+	this.poisson = param.poisson;   
+	this.density = param.density;   
+	this.thickness = param.thickness;
+	this.alpha = param.alpha;  
+	this.beta = param.beta;    
+	this.makeMatrixKe();
+}
 
 FEM.prototype.makeSurface = function(){
 	// nodeToTriの作成
@@ -200,7 +210,7 @@ FEM.prototype.makeSurface = function(){
 	}
 }
 
-FEM.prototype.makeMatrixKe = function(young, poisson, density, thickness){
+FEM.prototype.makeMatrixKe = function(){
 	// Bマトリクスを作成
 	var TriNum = this.tri.length;
 	this.Be = new Array(TriNum);
@@ -211,12 +221,12 @@ FEM.prototype.makeMatrixKe = function(young, poisson, density, thickness){
 	this.De = new Array(TriNum);
 	for (var i = 0; i < TriNum; i++) {
 		this.De[i] = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
-		var tmp = young / (1.0 - poisson * poisson);
+		var tmp = this.young / (1.0 - this.poisson * this.poisson);
 		this.De[i][0][0] = tmp;
-		this.De[i][0][1] = poisson * tmp;
-		this.De[i][1][0] = poisson * tmp;
+		this.De[i][0][1] = this.poisson * tmp;
+		this.De[i][1][0] = this.poisson * tmp;
 		this.De[i][1][1] = tmp;
-		this.De[i][2][2] = 0.5 * (1 - poisson) * tmp;
+		this.De[i][2][2] = 0.5 * (1 - this.poisson) * tmp;
 	}
 	// Keマトリクスを作成
 	var KeTmp;
@@ -224,6 +234,7 @@ FEM.prototype.makeMatrixKe = function(young, poisson, density, thickness){
 	var posMat;
 	var area;
 	this.mass = numeric.linspace(0,0,this.pos.length);
+	this.Ke = [];
 	for(var i=0; i<TriNum; i++){
 		Bt = numeric.transpose(this.Be[i]);
 		KeTmp = numeric.dot(this.De[i],this.Be[i]);
@@ -234,11 +245,11 @@ FEM.prototype.makeMatrixKe = function(young, poisson, density, thickness){
 		[1,this.pos[this.tri[i][2]][0],this.pos[this.tri[i][2]][1]] ];
 		area = 0.5 * numeric.det(posMat);
 		area = Math.abs(area);
-		KeTmp = numeric.mul(KeTmp,area*thickness);
+		KeTmp = numeric.mul(KeTmp,area*this.thickness);
 		this.Ke.push(KeTmp);
 		
 		for(var j=0; j<3; j++)
-			this.mass[this.tri[i][j]] += area * density * thickness * 0.333333;			
+			this.mass[this.tri[i][j]] += area * this.density * this.thickness * 0.333333;			
 	}
 	// stress, maxPStressの初期化
 	this.stress = new Array(TriNum);
