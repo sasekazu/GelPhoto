@@ -1,7 +1,7 @@
 ﻿
 // パラメータ
 var gravity = {x:0, y:0}; // 重力加速度[G]
-var minlen=40;
+var minlen=20;
 var imgSc = 1;
 var defaultImg = "jelly.jpg?";
 
@@ -13,6 +13,7 @@ var fractureFlag;
 var dataFlag;
 var selfCldFlag;
 var audioFlag;
+var mountFlag;
 
 
 var canvas;	// jquery キャンバスオブジェクト ($(#..)による)

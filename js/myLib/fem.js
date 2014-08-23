@@ -45,13 +45,13 @@ function FEM(initpos, tri){
 	var density = 0.001;    // 密度 [kg/mm3]
 	var thickness = 1;  // 物体の厚さ [mm]
 	this.mass = [];     // 節点の等価質量
-	this.alpha = 0.02;  // Mに作用するレイリー減衰のパラメータ
+	this.alpha = 0.2;  // Mに作用するレイリー減衰のパラメータ
 	this.beta = 0.01;    // Kに作用するレイリー減衰のパラメータ
 	this.gravity = { x: 0, y: 100 };
 
 	this.penalty = 100;	// ペナルティ法による自己接触の係数
 
-    // 要素剛性マトリクス作成
+	// 要素剛性マトリクス作成
 	this.makeMatrixKe(young, poisson, density, thickness);
 
 	this.K = [];
@@ -82,11 +82,12 @@ function FEM(initpos, tri){
 
 	this.maxPStress = [];
 	this.fixNode = []; // 固定ノードリスト: パブリックアクセスで外部から設定する
-    // 破壊に関するメンバ変数
-    this.removedFlag = new Array(this.tri.length);
-    for(var i=0; i<this.tri.length; i++)
-        this.removedFlag[i] = false;
-    this.thrPStress = 5*young;
+	// 破壊に関するメンバ変数
+	this.removedFlag = new Array(this.tri.length);
+	for(var i = 0; i < this.tri.length; i++) {
+		this.removedFlag[i] = false;
+	}
+	this.thrPStress = 5*young;
 
 	// マウスでつまむためのメンバ変数
 	this.holdNode = [];
@@ -239,17 +240,17 @@ FEM.prototype.makeMatrixKe = function(young, poisson, density, thickness){
 		for(var j=0; j<3; j++)
 			this.mass[this.tri[i][j]] += area * density * thickness * 0.333333;			
 	}
-    // stress, maxPStressの初期化
+	// stress, maxPStressの初期化
 	this.stress = new Array(TriNum);
 	for (var i = 0; i < TriNum; i++) {
-	    this.stress[i] = [0, 0, 0];
+		this.stress[i] = [0, 0, 0];
 	}
 	this.maxPStress = numeric.linspace(0, 0, TriNum);
 
-    // Reの初期化
+	// Reの初期化
 	this.Re = new Array(TriNum);
 	for(var i=0; i<TriNum; i++){
-	    this.Re[i] = numeric.identity(2);
+		this.Re[i] = numeric.identity(2);
 	}
 }
 
@@ -312,8 +313,14 @@ FEM.prototype.selectHoldNodes = function(mousePos){
 }
 
 
+FEM.prototype.fixSurface = function(){
+	for(var i = 0; i < this.surNode.length; ++i) {
+		this.fixNode.push(this.surNode[i]);
+	}
+}
+
 // 境界条件の設定
-FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfCollisionFlag){
+FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfCollisionFlag, mountFlag){
 	
 	if(mousePos.length != this.holdNode.length) {
 		this.selectHoldNodes(mousePos);
@@ -328,12 +335,27 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 	var u = numeric.linspace(0,0,2*this.posNum);
 	this.f = numeric.linspace(0,0,2*this.posNum);
 
+	// 表面ノードを固定する
+	if(mountFlag)
+	{
+		var nd;
+		for(var i = 0; i < this.surNode.length; ++i) {
+			nd = this.surNode[i];
+			u[2*nd]  = 0;
+			u[2*nd+1]= 0;
+			nodeToDF[nd]="d";
+		}
+	}
+
 	// 固定ノードの境界条件
-	for(var i=0; i<this.fixNode.length; i++) {
-		var nd=this.fixNode[i];
-		u[2*nd] = this.pos[nd][0]-this.initpos[nd][0];
-		u[2*nd+1]=this.pos[nd][1]-this.initpos[nd][1];
-		nodeToDF[nd]="d";
+	{
+		var nd;
+		for(var i=0; i<this.fixNode.length; i++) {
+			nd=this.fixNode[i];
+			u[2*nd] = this.pos[nd][0]-this.initpos[nd][0];
+			u[2*nd+1]=this.pos[nd][1]-this.initpos[nd][1];
+			nodeToDF[nd]="d";
+		}
 	}
 	
 	// 上面のノードを固定
@@ -544,8 +566,8 @@ FEM.prototype.makeMatrixKSW = function(){
 	var RK = numeric.rep([2*this.pos.length,2*this.pos.length],0);
 	
 	for(var i=0; i<TriNum; i++){
-        // 削除された要素は計算しない
-        if(this.removedFlag[i]) continue;
+		// 削除された要素は計算しない
+		if(this.removedFlag[i]) continue;
 		
 		// 要素の回転角度取得
 		var q = numeric.rep([3,2],0);
@@ -583,9 +605,9 @@ FEM.prototype.makeMatrixKSW = function(){
 		this.Re[i] = [[Math.cos(this.th[i]),-Math.sin(this.th[i])],[Math.sin(this.th[i]),Math.cos(this.th[i])]];
 		
 
-        // StiffnessWarpingの効果を無効にしたいときは
-        // コメントアウトを外して回転行列を単位行列にする
-        //this.Re[i] = numeric.identity(2);
+		// StiffnessWarpingの効果を無効にしたいときは
+		// コメントアウトを外して回転行列を単位行列にする
+		//this.Re[i] = numeric.identity(2);
 
 
 		// 要素剛性マトリクス作成
@@ -926,44 +948,44 @@ FEM.prototype.getForce = function () {
 	
 
 FEM.prototype.calcStress = function () {
-    for (var i = 0; i < this.tri.length; i++) {
-        var xe = [0,0,0,0,0,0];
-        for(var j=0; j<3; j++){
-            xe[2*j] = this.pos[this.tri[i][j]][0];
-            xe[2*j+1] = this.pos[this.tri[i][j]][1];
-        }
-        var x0e = [0,0,0,0,0,0];
-        for(var j=0; j<3; j++){
-            x0e[2*j] = this.initpos[this.tri[i][j]][0];
-            x0e[2*j+1] = this.initpos[this.tri[i][j]][1];
-        }
-        //var ReInv = numeric.transpose(this.Re[i]);
+	for (var i = 0; i < this.tri.length; i++) {
+		var xe = [0,0,0,0,0,0];
+		for(var j=0; j<3; j++){
+			xe[2*j] = this.pos[this.tri[i][j]][0];
+			xe[2*j+1] = this.pos[this.tri[i][j]][1];
+		}
+		var x0e = [0,0,0,0,0,0];
+		for(var j=0; j<3; j++){
+			x0e[2*j] = this.initpos[this.tri[i][j]][0];
+			x0e[2*j+1] = this.initpos[this.tri[i][j]][1];
+		}
+		//var ReInv = numeric.transpose(this.Re[i]);
 		var ReInv = numeric.rep([6,6],0);
 		for(var j=0; j<3; j++)
 			for(var k=0; k<2; k++)
 				for(var l = 0; l < 2; l++) 
 					ReInv[2*j+k][2*j+l] = this.Re[i][l][k];
-        var strain = numeric.dot(ReInv,xe);
-        strain = numeric.sub(strain,x0e);
-        var tmp = numeric.dot(this.De[i],this.Be[i]);
-        var stress = numeric.dot(tmp,strain);
-        var sigma1 = (stress[0]+stress[1])*0.5+Math.sqrt((stress[0]-stress[1])*(stress[0]-stress[1])*0.25+stress[2]*stress[2]);
-        var sigma2 = (stress[0]+stress[1])*0.5-Math.sqrt((stress[0]-stress[1])*(stress[0]-stress[1])*0.25+stress[2]*stress[2]);
-        if(Math.abs(sigma1)>Math.abs(sigma2)) {
-            this.maxPStress[i]=Math.abs(sigma1);
-        } else {
-            this.maxPStress[i]=Math.abs(sigma2);
-        }
-    }
+		var strain = numeric.dot(ReInv,xe);
+		strain = numeric.sub(strain,x0e);
+		var tmp = numeric.dot(this.De[i],this.Be[i]);
+		var stress = numeric.dot(tmp,strain);
+		var sigma1 = (stress[0]+stress[1])*0.5+Math.sqrt((stress[0]-stress[1])*(stress[0]-stress[1])*0.25+stress[2]*stress[2]);
+		var sigma2 = (stress[0]+stress[1])*0.5-Math.sqrt((stress[0]-stress[1])*(stress[0]-stress[1])*0.25+stress[2]*stress[2]);
+		if(Math.abs(sigma1)>Math.abs(sigma2)) {
+			this.maxPStress[i]=Math.abs(sigma1);
+		} else {
+			this.maxPStress[i]=Math.abs(sigma2);
+		}
+	}
 }
 
 
 FEM.prototype.removeElement=function () {
-    for(var i=0; i<this.tri.length; i++) {
-        if(this.maxPStress[i]>this.thrPStress) {
-            this.removedFlag[i] = true;
-        }
-    }
+	for(var i=0; i<this.tri.length; i++) {
+		if(this.maxPStress[i]>this.thrPStress) {
+			this.removedFlag[i] = true;
+		}
+	}
 }
 
 

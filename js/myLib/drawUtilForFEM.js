@@ -18,18 +18,18 @@ function drawClosedCurve(context, cv) {
 
 
 function drawOutLine(context, outline) {
-    context.lineWidth = 4.0;
+	context.lineWidth = 4.0;
 	var color = 'rgb(0,0,0)';
 	context.fillStyle = color;
 	for (var c = 0; c < outline.closedCurves.length; c++) {
-        var cvtmp = outline.closedCurves[c];
+		var cvtmp = outline.closedCurves[c];
 		for (var i = 0; i < cvtmp.lines.length; ++i) {
-		    drawLine(context, cvtmp.lines[i].start, cvtmp.lines[i].end);
-		    drawCircle(context, cvtmp.lines[i].start, 1);
-		    drawCircle(context, cvtmp.lines[i].end, 1);
+			drawLine(context, cvtmp.lines[i].start, cvtmp.lines[i].end);
+			drawCircle(context, cvtmp.lines[i].start, 1);
+			drawCircle(context, cvtmp.lines[i].end, 1);
 		}
 	}		
-    context.lineWidth = 1.0;
+	context.lineWidth = 1.0;
 }
 
 
@@ -46,7 +46,7 @@ function drawMesh(context, mesh) {
 function drawFEMS(context, physicsModel) {
 	for(var i=0; i<physicsModel.tri.length; ++i) {
 		var color = "rgb(255,100,100)";
-   		context.fillStyle = color; 
+		context.fillStyle = color; 
 		context.strokeStyle = 'rgb(0, 0, 0)'; 
 		drawTriS(context, physicsModel.pos[physicsModel.tri[i][0]], physicsModel.pos[physicsModel.tri[i][1]], physicsModel.pos[physicsModel.tri[i][2]]);
 	}

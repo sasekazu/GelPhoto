@@ -38,6 +38,22 @@ function initCheckBoxEvent() {
 	});
 }
 
+function initRadioEvent() {
+	mountFlag = ($('input[name="mode"]:checked').val() == "mount");
+	$( 'input[name="mode"]:radio' ).change( function() {  
+		mountFlag = ($(this).val() == "mount");
+		if(mountFlag) {
+			// マウントモードに切り替えたとき重力をオフ
+			console.log("mount");
+			$('#gravityCheckBox').prop('checked', false);
+		} else {
+			console.log("pop");
+			// ポップモードに切り替えたとき重力をオン
+			$('#gravityCheckBox').prop('checked', true);
+		}
+	});  
+}
+
 function initButtonEvent() {
 	// リセットボタン
 	$("#resetButton").click(function () {

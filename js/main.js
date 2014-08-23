@@ -22,6 +22,7 @@ $(document).ready(function () {
 	initCanvas();
 	// イベント処理の追加
 	initCheckBoxEvent();
+	initRadioEvent();
 	initButtonEvent();
 	
 	state = "drawOutLine";
@@ -79,7 +80,7 @@ $(document).ready(function () {
 		cv=new ClosedCurve(minlen);
 		outline=new Outline();
 		if(firstFlag) {
-			jellyMesh();
+			//jellyMesh();
 			firstFlag = false;
 		}
 		mainloop();
@@ -101,7 +102,7 @@ $(document).ready(function () {
 	//  無限ループ
 	/////////////////////////////////////////////////////////
 	function mainloop() {
-		loopFunc();
+		loopFunc();	// loopFuncはcallbacks.jsで定義されている関数
 	    setTimeout(mainloop, 20);
 	}
 	

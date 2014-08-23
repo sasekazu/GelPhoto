@@ -1,4 +1,5 @@
-﻿
+﻿/// <reference path="myLib/drawUtil.js" />
+/// <reference path="myLib/drawUtilForFEM.js" />
 	
 /////////////////////////////////////////////////////////
 ////////　 アウトライン作成関数
@@ -93,6 +94,9 @@ function fixFunc() {
 	if(meshFlag) { 
 		drawFEMS(context, physicsModel);
 	}else{
+		if(mountFlag) {
+			imgMg.drawImage(context);
+		}
 		drawFEMwithImage(context, physicsModel, imgMg);
 		drawFEMS(context, physicsModel);
 	}
@@ -103,7 +107,6 @@ function fixFunc() {
 	context.fillStyle=color;
 	for(var i = 0; i < physicsModel.pos.length; ++i) {
 		drawCircle(context, physicsModel.pos[i], 3);
-
 	}
 
 	// 固定点の描画
@@ -148,7 +151,7 @@ function physicsFunc() {
 	}
 
 	var timeSetB0 = new Date();
-	physicsModel.setBoundary(clickState, mousePos, gravityFlag, selfCldFlag);		
+	physicsModel.setBoundary(clickState, mousePos, gravityFlag, selfCldFlag, mountFlag);		
 	var timeSetB1 = new Date();
 	//console.log("setBoundary " + (timeSetB1-timeSetB0) + " [ms]");
 
@@ -186,11 +189,15 @@ function physicsFunc() {
 	}
 
 	// 描画処理
+	
 	context.setTransform(1,0,0,1,0,0);
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 	if(meshFlag){
 		drawFEM(context, physicsModel, selfCldFlag);
 	} else {
+		if(mountFlag) {
+			imgMg.drawImage(context);
+		}
 		drawFEMwithImage(context, physicsModel, imgMg);
 	}
 	if(dataFlag){
