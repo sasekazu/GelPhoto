@@ -3,21 +3,19 @@
 // 第1引数：jqueryのcanvasオブジェクト
 // 第2引数：クリックまたはタッチのイベントコンテキスト
 // 第3引数：マウス位置を出力する配列
-function getMousePos(canvasObj, touchesEvent, mousePos) {
-	mousePos = [];
+function getMousePos(canvasObj, touchesEvent) {
+	var tmp = [];
 	var canvasOffset = canvasObj.offset();
 	for(var i=0; i<touchesEvent.length; ++i){
 		var canvasX = Math.floor(touchesEvent[i].pageX-canvasOffset.left);
 		var canvasY = Math.floor(touchesEvent[i].pageY-canvasOffset.top);
 		if(canvasX < 0 || canvasX > canvasObj.width()){
-			mousePos = null;
-			return;
+			return null;
 		}
 		if(canvasY < 0 || canvasY > canvasObj.height()){
-			mousePos = null;
-			return;
+			return null;
 		}
-		mousePos.push([canvasX, canvasY]);
+		tmp.push([canvasX, canvasY]);
 	}
-	return mousePos;
+	return tmp;
 }

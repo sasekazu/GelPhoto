@@ -1,6 +1,8 @@
 ﻿// JavaScript Document
 /// <reference path="~/js/myLib/outline.js" />
 /// <reference path="~/js/callbacks.js" />
+/// <reference path="~/js/myLib/mouseUtil.js" />
+
 
 
 // 加速度センサ値取得イベント
@@ -128,10 +130,11 @@ function initButtonEvent() {
 	// 引数はタッチしたキャンパス上の点座標が格納されている配列
 	function clickFunc(touches){
 
-		getMousePos(canvas, touches, mousePos);
-		if(mousePos == null) {
+		var tmp = getMousePos(canvas, touches);
+		if(tmp === null) {
 			return;
 		}
+		mousePos = tmp;
 
 		clickState = "Down";
 
