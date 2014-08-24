@@ -41,7 +41,7 @@ function drawOutLineFunc(){
 	context.setTransform(1,0,0,1,0,0);
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 	// 全体の写真を描画
-	if(!meshFlag) {
+	if(imgFlag) {
 		imgMg.drawImage(context);
 	}
 	// 作成中の曲線の描画
@@ -63,7 +63,7 @@ function generateMeshFunc() {
 			// 描画
 			context.setTransform(1, 0, 0, 1, 0, 0);
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
-			if(!meshFlag) {
+			if(imgFlag) {
 				imgMg.drawImage(context);
 			}
 			drawMesh(context, mesh);
@@ -91,7 +91,7 @@ function generateMeshFunc() {
 	
 	context.setTransform(1, 0, 0, 1, 0, 0);
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
-	if(!meshFlag) {
+	if(imgFlag) {
 		imgMg.drawImage(context);
 	}
 	drawMesh(context, mesh);
@@ -129,13 +129,13 @@ function fixFunc() {
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 
 	// メッシュの描画
-	if(meshFlag) { 
-		drawFEMS(context, physicsModel);
-	}else{
+	if(imgFlag) { 
 		if(mountFlag) {
 			imgMg.drawImage(context);
 		}
 		drawFEMwithImage(context, physicsModel, imgMg);
+		drawFEMS(context, physicsModel);
+	}else{
 		drawFEMS(context, physicsModel);
 	}
 
@@ -230,13 +230,13 @@ function physicsFunc() {
 	
 	context.setTransform(1,0,0,1,0,0);
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
-	if(meshFlag){
-		drawFEM(context, physicsModel, selfCldFlag);
-	} else {
+	if(imgFlag){
 		if(mountFlag) {
 			imgMg.drawImage(context);
 		}
 		drawFEMwithImage(context, physicsModel, imgMg);
+	} else {
+		drawFEM(context, physicsModel, selfCldFlag);
 	}
 	if(dataFlag){
 		drawFEMwithData(context, physicsModel);

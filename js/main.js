@@ -62,8 +62,8 @@ $(document).ready(function () {
 				// 画像以外の変数の初期化
 				state="drawOutLine";
 				loopFunc = drawOutLineFunc;
-				$('#meshCheckBox').prop('checked', false);
-				meshFlag = $('#meshCheckBox').is(':checked');
+				$('#imgCheckBox').prop('checked', false);
+				imgFlag = $('#imgCheckBox').is(':checked');
 				cv=new ClosedCurve(minlen);
 				outline=new Outline();
 
@@ -95,7 +95,7 @@ $(document).ready(function () {
 	imgMg.img.onerror=function(){
 		alert("画像が読み込めません");
 		// メッシュ表示モードにする
-		$("#meshCheckBox").attr("checked", true);
+		$("#imgCheckBox").attr("checked", true);
 		cv = new ClosedCurve(minlen);
 		outline = new Outline();
 		mainloop();

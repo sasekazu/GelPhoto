@@ -1,6 +1,6 @@
 ﻿
 // 定数
-var fullscreenFlag = true;	// フルスクリーンにするにはこの値をtrueにし，CSSをフルスクリーン用に変える
+var fullscreenFlag = false;	// フルスクリーンにするにはこの値をtrueにし，CSSをフルスクリーン用に変える
 var imgSc = 1;
 var defaultImg = "jelly.jpg?";
 
@@ -16,7 +16,7 @@ var beta;
 
 
 // 状態管理用フラグ
-var meshFlag;
+var imgFlag;
 var gravityFlag;
 var fractureFlag;
 var dataFlag;

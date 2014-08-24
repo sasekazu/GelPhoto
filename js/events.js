@@ -14,9 +14,9 @@ window.addEventListener("devicemotion", function(event1){
 
 
 function initCheckBoxEvent() {
-	meshFlag = $('#meshCheckBox').is(':checked');
-	$('#meshCheckBox').change(function(){
-		meshFlag = $(this).is(':checked');
+	imgFlag = $('#imgCheckBox').is(':checked');
+	$('#imgCheckBox').change(function(){
+		imgFlag = $(this).is(':checked');
 	});
 	gravityFlag = $('#gravityCheckBox').is(':checked');
 	$('#gravityCheckBox').change(function(){
