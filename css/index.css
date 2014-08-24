@@ -1,6 +1,13 @@
+
 *{
+	/* フルスクリーン用 */
+	margin: 0px;
+	padding: 0px;
+	/* 通常用 */
+	/*
 	margin: 3px;
 	padding: 3px;
+	*/
 }
 
 
@@ -18,8 +25,8 @@ th{
 	background-color : lightgray;
 }
 
-#page{
-	width: 610px;
+#discription{
+	width: 900px;
 	margin: 0 auto;
 }
 
@@ -28,5 +35,8 @@ body{
 }
 
 canvas {
+  display: block;
   border: solid black 1px;
+  padding: 0 0;
+  margin: 0 auto;
 }

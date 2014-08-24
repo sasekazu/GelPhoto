@@ -1,37 +1,49 @@
 ﻿// ゼリーの輪郭を切る関数
-function jellyMesh() {
-	minlen = 40;
+function jellyMesh(imgMg) {
+	minlen = imgMg.dw/800*40;
 	outline=new Outline();
 	cv=new ClosedCurve(minlen);
 
+	var points = 
+		[
+			[ 494, 130 ] ,
+			[ 454, 127 ] ,
+			[ 415, 118 ] ,
+			[ 374, 117 ] ,
+			[ 334, 120 ] ,
+			[ 294, 126 ] ,
+			[ 274, 161 ] ,
+			[ 267, 201 ] ,
+			[ 250, 239 ] ,
+			[ 227, 272 ] ,
+			[ 221, 312 ] ,
+			[ 236, 350 ] ,
+			[ 272, 369 ] ,
+			[ 310, 383 ] ,
+			[ 350, 387 ] ,
+			[ 390, 387 ] ,
+			[ 430, 389 ] ,
+			[ 469, 379 ] ,
+			[ 508, 367 ] ,
+			[ 540, 341 ] ,
+			[ 550, 302 ] ,
+			[ 539, 262 ] ,
+			[ 514, 230 ] ,
+			[ 502, 191 ] ,
+			[ 500, 151 ] ,
+			[ 479, 116 ] 
+		];
+	
+	for(var i = 0; i < points.length; ++i) {
+		points[i][0] *= imgMg.dw/800;
+		points[i][1] *= imgMg.dw/800;
+		points[i][0] += imgMg.dx;
+		points[i][1] += imgMg.dy;
+	}
 
-	cv.addPoint([ 494, 130 ] );
-	cv.addPoint([ 454, 127 ] );
-	cv.addPoint([ 415, 118 ] );
-	cv.addPoint([ 374, 117 ] );
-	cv.addPoint([ 334, 120 ] );
-	cv.addPoint([ 294, 126 ] );
-	cv.addPoint([ 274, 161 ] );
-	cv.addPoint([ 267, 201 ] );
-	cv.addPoint([ 250, 239 ] );
-	cv.addPoint([ 227, 272 ] );
-	cv.addPoint([ 221, 312 ] );
-	cv.addPoint([ 236, 350 ] );
-	cv.addPoint([ 272, 369 ] );
-	cv.addPoint([ 310, 383 ] );
-	cv.addPoint([ 350, 387 ] );
-	cv.addPoint([ 390, 387 ] );
-	cv.addPoint([ 430, 389 ] );
-	cv.addPoint([ 469, 379 ] );
-	cv.addPoint([ 508, 367 ] );
-	cv.addPoint([ 540, 341 ] );
-	cv.addPoint([ 550, 302 ] );
-	cv.addPoint([ 539, 262 ] );
-	cv.addPoint([ 514, 230 ] );
-	cv.addPoint([ 502, 191 ] );
-	cv.addPoint([ 500, 151 ] );
-	cv.addPoint([ 479, 116 ] );
-
+	for(var i = 0; i < points.length; ++i) {
+		cv.addPoint(points[i]);
+	}
 
 	outline.addClosedLine(cv);
 

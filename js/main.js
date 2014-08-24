@@ -28,18 +28,19 @@ $(document).ready(function () {
 	state = "drawOutLine";
 	loopFunc = drawOutLineFunc;
 
-	// 基本的にwindow sizeは変えないことにする
-	// タブレット版は変えたほうが良いかも
-	/*
-	$(window).resize(resizeCanvas);
+	// フルスクリーン用
+	if(fullscreenFlag) {
+		$(window).resize(resizeCanvas);
+		$('#discription').hide();
+		resizeCanvas();	
+	}
 	function resizeCanvas(){
-		canvas.attr("width", $(window).get(0).innerWidth*0.9);
-		canvas.attr("height", $(window).get(0).innerHeight*0.7);
+		// -2 は1pxボーダーの分
+		canvas.attr("width",  document.documentElement.clientWidth-2);
+		canvas.attr("height", document.documentElement.clientHeight-2);
 		canvasWidth = canvas.width();
 		canvasHeight = canvas.height();
 	};
-	resizeCanvas();	
-	*/
 
 
 	/////////////////////////////////
@@ -84,7 +85,7 @@ $(document).ready(function () {
 		cv=new ClosedCurve(minlen);
 		outline=new Outline();
 		if(firstFlag) {
-			jellyMesh();
+			jellyMesh(imgMg);
 			firstFlag = false;
 		}
 		mainloop();

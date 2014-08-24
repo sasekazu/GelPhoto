@@ -1,9 +1,14 @@
 ﻿
+// 定数
+var fullscreenFlag = true;	// フルスクリーンにするにはこの値をtrueにし，CSSをフルスクリーン用に変える
+var imgSc = 1;
+var defaultImg = "jelly.jpg?";
+
+
+// テキストボックスで設定可能な
 // パラメータ
 var gravity = {x:0, y:0}; // 重力加速度[G]
 var minlen=40;
-var imgSc = 1;
-var defaultImg = "jelly.jpg?";
 var young;
 var poisson;
 var alpha;
