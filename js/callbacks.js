@@ -82,6 +82,8 @@ function generateMeshFunc() {
 		physicsModel = new FEM(mesh.dPos, mesh.tri, param);
 		state="physics";
 		loopFunc = physicsFunc;
+		fpsMg = new FPSManager();
+
 		console.log("posNum "+physicsModel.pos.length);
 		console.log("triNum "+physicsModel.tri.length);
 	}
@@ -239,5 +241,9 @@ function physicsFunc() {
 	if(dataFlag){
 		drawFEMwithData(context, physicsModel);
 	}
+
+	fpsMg.flush();
+	drawFPS(context, fpsMg.getFPS());
+
 
 }

@@ -208,3 +208,11 @@ function drawFEMwithData(context, physicsModel) {
 	}
 	context.lineWidth = 1;
 }
+
+
+function drawFPS(context, fps) {
+	context.fillStyle = 'black'; 
+	context.font = "20px 'Arial'";
+	context.textAlign = "left";
+	context.fillText(fps + " fps", 30, 30);
+}

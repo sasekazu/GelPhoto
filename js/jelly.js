@@ -63,6 +63,7 @@ function jellyMesh(imgMg) {
 	physicsModel.gripRad=minlen;
 	state="physics";
 	loopFunc = physicsFunc;
+	fpsMg = new FPSManager();
 	console.log("posNum "+physicsModel.pos.length);
 	console.log("triNum "+physicsModel.tri.length);
 }

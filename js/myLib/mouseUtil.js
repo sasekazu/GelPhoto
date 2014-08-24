@@ -19,3 +19,6 @@ function getMousePos(canvasObj, touchesEvent) {
 	}
 	return tmp;
 }
+
+
+

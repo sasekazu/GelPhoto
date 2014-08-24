@@ -23,6 +23,9 @@ var dataFlag;
 var selfCldFlag;
 var audioFlag;
 var mountFlag;
+var state;
+var loopFunc;
+var fpsMg;
 
 
 var canvas;	// jquery キャンバスオブジェクト ($(#..)による)
@@ -54,10 +57,6 @@ var dragFlagf=false;
 
 // 画像読み込み用変数
 var imgMg;
-
-// 状態管理用変数
-var state;
-var loopFunc;
 
 function initCanvas() {
 	canvas = $("#mViewCanvas");
