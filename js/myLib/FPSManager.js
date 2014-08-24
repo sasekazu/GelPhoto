@@ -30,5 +30,6 @@ FPSManager.prototype.flush = function () {
 
 
 FPSManager.prototype.getFPS = function(){
-	return Math.round(this.fpsForDisplay);
+//	return Math.round(this.fpsForDisplay);
+	return Math.round(this.fpsBuf[0]);
 }

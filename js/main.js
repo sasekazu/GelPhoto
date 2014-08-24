@@ -62,12 +62,10 @@ $(document).ready(function () {
 				// 画像以外の変数の初期化
 				state="drawOutLine";
 				loopFunc = drawOutLineFunc;
-				$('#imgCheckBox').prop('checked', false);
+				$('#imgCheckBox').prop('checked', true);
 				imgFlag = $('#imgCheckBox').is(':checked');
 				cv=new ClosedCurve(minlen);
 				outline=new Outline();
-
-				mainloop();
 			}
 			// 画像のURLをソースに設定
 			imgMg.readImage(evt.target.result);
@@ -87,18 +85,13 @@ $(document).ready(function () {
 		if(firstFlag) {
 			jellyMesh(imgMg);
 			firstFlag = false;
+			mainloop();
 		}
-		mainloop();
 	}
 
 	// 画像が読み込めない時も実行
 	imgMg.img.onerror=function(){
 		alert("画像が読み込めません");
-		// メッシュ表示モードにする
-		$("#imgCheckBox").attr("checked", true);
-		cv = new ClosedCurve(minlen);
-		outline = new Outline();
-		mainloop();
 	}
 
 
