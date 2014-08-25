@@ -26,8 +26,8 @@
 		<!-- <script type="text/javascript" src="photofem.js"></script> -->
 	</head>
 	<body>
-		<canvas id="mViewCanvas" width="800" height="500">
-		</canvas>
+		<video id="myVideo" width="800" height="600" autoplay ></video>
+		<canvas id="myCanvas" width="800" height="600"></canvas>
 		<div id="discription">
 			<div>
 				<input id="resetButton" value="リセット" type="button" />
@@ -43,11 +43,11 @@
 				</p>
 			</div>
 			<div class="optionDiv">
-				<label><input type="radio" name="mode" value="pop" checked>ポップモード : 領域が写真から飛び出す</label><br />
-				<label><input type="radio" name="mode" value="mount">マウントモード : 領域の内側だけが変形する</label><br />
+				<label><input type="radio" name="mode" value="pop">ポップモード : 領域が写真から飛び出す</label><br />
+				<label><input type="radio" name="mode" value="mount" checked>マウントモード : 領域の内側だけが変形する</label><br />
 			</div>
 			<div class="optionDiv">
-				<label><input id="gravityCheckBox" type="checkbox" checked>重力 : タブレット端末の向きに応じて重力を印加する</label><br />
+				<label><input id="gravityCheckBox" type="checkbox">重力 : タブレット端末の向きに応じて重力を印加する</label><br />
 				<label><input id="selfCldCheckBox" type="checkbox" />接触 : 複数の柔軟物体の間の接触を計算する</label><br />
 				<label><input id="fractureCheckBox" type="checkbox">破壊 : 応力に基づき要素を削除する</label><br />
 				<label><input id="imgCheckBox" type="checkbox" checked>画像表示</label><br />
@@ -61,7 +61,7 @@
 			</div>
 			<div class="optionDiv">
 				<table>
-					<tr><th>メッシュサイズ [px]</th><td><input id="meshTx" class="tx" type="text" value="40" name="mesh"></td></tr>
+					<tr><th>メッシュサイズ [px]</th><td><input id="meshTx" class="tx" type="text" value="100" name="mesh"></td></tr>
 				</table>
 				<input id="applyMeshButton" value="適用" type="button" />
 				<p>※適用後、変形させたい領域を示す閉曲線を描きスタートを押すとメッシュが生成されます。</p>

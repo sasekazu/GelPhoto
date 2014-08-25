@@ -34,6 +34,14 @@ body{
 	font-family: "ƒqƒ‰ƒMƒmŠpƒS ProN", "Hiragino Kaku Gothic ProN", "ƒƒCƒŠƒI", Meiryo, sans-serif;
 }
 
+
+video{
+  display: block;
+  border: solid black 1px;
+  padding: 0 0;
+  margin: 0 auto;
+}
+
 canvas {
   display: block;
   border: solid black 1px;

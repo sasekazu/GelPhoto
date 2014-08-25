@@ -18,8 +18,12 @@
 
 $(document).ready(function () {
 
+
+
 	// キャンバスのコンテキスト取得
 	initCanvas();
+	initVideo();
+	$('#myVideo').hide();
 	// イベント処理の追加
 	initCheckBoxEvent();
 	initRadioEvent();
@@ -42,6 +46,8 @@ $(document).ready(function () {
 		canvasHeight = canvas.height();
 	};
 
+
+	minlen =  Number($("#meshTx").val()),
 
 	/////////////////////////////////
 	// 画像の読み込み
@@ -83,7 +89,27 @@ $(document).ready(function () {
 		cv=new ClosedCurve(minlen);
 		outline=new Outline();
 		if(firstFlag) {
-			jellyMesh(imgMg);
+//			jellyMesh(imgMg);
+
+		if(outline.closedCurves.length==0) {
+			cv=new ClosedCurve(minlen);
+			var dx = 0;
+			var dy = 0;
+			var dw = canvas.width();
+			var dh = canvas.height();
+			cv.addPoint([dx, dy]);
+			cv.addPoint([dx, dy+dh]);
+			cv.addPoint([dx+dw, dy+dh]);
+			cv.addPoint([dx+dw, dy]);
+			cv.addPoint([dx, dy]);
+			outline.addClosedLine(cv);
+		}
+
+		mesh=new DelaunayGen(outline, minlen);
+
+		loopFunc = generateMeshFunc;
+
+
 			firstFlag = false;
 			mainloop();
 		}
@@ -101,7 +127,7 @@ $(document).ready(function () {
 	/////////////////////////////////////////////////////////
 	function mainloop() {
 		loopFunc();	// loopFuncはcallbacks.jsで定義されている関数
-	    setTimeout(mainloop, 20);
+		setTimeout(mainloop, 20);
 	}
 	
 		

@@ -8,7 +8,7 @@ var defaultImg = "jelly.jpg?";
 // テキストボックスで設定可能な
 // パラメータ
 var gravity = {x:0, y:0}; // 重力加速度[G]
-var minlen=40;
+var minlen;
 var young;
 var poisson;
 var alpha;
@@ -27,12 +27,15 @@ var state;
 var loopFunc;
 var fpsMg;
 
-
+// canvas
 var canvas;	// jquery キャンバスオブジェクト ($(#..)による)
 var cvs;	// DOMオブジェクト (getElementByIdによる)
 var context;
 var canvasWidth;
 var canvasHeight;
+
+// video
+var video;
 
 // マウスポインタに関する変数
 var clickState = "Up";		// Up, Down
@@ -59,9 +62,27 @@ var dragFlagf=false;
 var imgMg;
 
 function initCanvas() {
-	canvas = $("#mViewCanvas");
-	cvs = document.getElementById('mViewCanvas');
+	canvas = $("#myCanvas");
+	cvs = document.getElementById('myCanvas');
 	context = canvas.get(0).getContext("2d");
 	canvasWidth = canvas.width();
 	canvasHeight = canvas.height();
+}
+
+
+function initVideo() {
+	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || window.navigator.mozGetUserMedia;
+	window.URL = window.URL || window.webkitURL;
+	video = document.getElementById('myVideo');
+	var localStream = null;
+	navigator.getUserMedia({video: true, audio: false},
+	 function(stream) { // for success case
+	  console.log(stream);
+	  video.src = window.URL.createObjectURL(stream);
+
+	 },
+	 function(err) { // for error case
+	  console.log(err);
+	 }
+	);
 }
