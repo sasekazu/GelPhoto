@@ -43,8 +43,7 @@ function drawOutLineFunc(){
 	// 全体の写真を描画
 	if(imgFlag) {
 //		imgMg.drawImage(context);
-		context.drawImage(video, 0, 0, canvas.width(), canvas.height());
-
+		drawVideo()
 	}
 	// 作成中の曲線の描画
 	drawClosedCurve(context, cv);
@@ -52,6 +51,7 @@ function drawOutLineFunc(){
 	drawOutLine(context, outline);
 
 }
+
 	
 //////////////////////////////////////////////////////////
 //////  メッシュ生成処理
@@ -67,8 +67,7 @@ function generateMeshFunc() {
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
 			if(imgFlag) {
 //				imgMg.drawImage(context);
-				context.drawImage(video, 0, 0, canvas.width(), canvas.height());
-
+				drawVideo()
 			}
 			drawMesh(context, mesh);
 		}
@@ -97,7 +96,7 @@ function generateMeshFunc() {
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 	if(imgFlag) {
 //		imgMg.drawImage(context);
-		context.drawImage(video, 0, 0, canvas.width(), canvas.height());
+		drawVideo()
 
 	}
 	drawMesh(context, mesh);
@@ -138,7 +137,7 @@ function fixFunc() {
 	if(imgFlag) { 
 		if(mountFlag) {
 //			imgMg.drawImage(context);
-			context.drawImage(video, 0, 0, canvas.width(), canvas.height());
+			drawVideo()
 
 		}
 //		drawFEMwithImage(context, physicsModel, imgMg);
@@ -242,7 +241,7 @@ function physicsFunc() {
 	if(imgFlag){
 		if(mountFlag) {
 //			imgMg.drawImage(context);
-			context.drawImage(video, 0, 0, canvas.width(), canvas.height());
+			drawVideo()
 		}
 //		drawFEMwithImage(context, physicsModel, imgMg);
 		drawFEMwithVideo(context, physicsModel, video, canvas.width(), canvas.height());
