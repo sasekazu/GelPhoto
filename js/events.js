@@ -160,6 +160,8 @@ function initButtonEvent() {
 	// キャプチャ
 	$("#captureButton").click(function (){
 		stopVideo();
+		var canvasTmp = $('#myCanvas').get(0);
+		imgMg.readImage(canvasTmp.toDataURL('image/png'));
 		document.getElementsByName("input-media")[0].checked = true;
 		inputMedia = "image";
 	});

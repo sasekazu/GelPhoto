@@ -104,8 +104,6 @@ function stopVideo() {
 	if(stream !== undefined){
 		stream.stop();
 	}
-	var canvasTmp = $('#myCanvas').get(0);
-	imgMg.readImage(canvasTmp.toDataURL('image/png'));
 }
 
 
