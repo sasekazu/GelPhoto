@@ -36,6 +36,7 @@ var canvasHeight;
 
 // video
 var video;
+var stream;
 
 // マウスポインタに関する変数
 var clickState = "Up";		// Up, Down
@@ -58,6 +59,9 @@ var clickPosf=[];
 var dragFlagf=false;
 
 
+// インプットメディア("video" or "image")
+var inputMedia;
+
 // 画像読み込み用変数
 var imgMg;
 
@@ -71,17 +75,21 @@ function initCanvas() {
 
 
 
-
 function initVideo() {
 	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || window.navigator.mozGetUserMedia;
 	video = document.getElementById('myVideo');
-	var localStream = null;
+}
+
+
+function startVideo() {
+	$('#captureButton').show("slow");	// キャプチャボタンを表示
 	navigator.getUserMedia(
 		{video: true, audio: false},
 	 
-	 function(stream) { // for success case
-		console.log(stream);
-		video.src = window.URL.createObjectURL(stream);
+	 function(localStream) { // for success case
+		stream = localStream;
+		console.log(localStream);
+		video.src = window.URL.createObjectURL(localStream);
 	 },
 	 function(err) { // for error case
 		console.log(err);
@@ -90,6 +98,15 @@ function initVideo() {
 }
 
 
+function stopVideo() {
+	$('#captureButton').hide();	// キャプチャボタンを消す
+	video.src = "";
+	if(stream !== undefined){
+		stream.stop();
+	}
+	var canvasTmp = $('#myCanvas').get(0);
+	imgMg.readImage(canvasTmp.toDataURL('image/png'));
+}
 
 
 // for draw video

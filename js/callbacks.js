@@ -42,8 +42,11 @@ function drawOutLineFunc(){
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 	// 全体の写真を描画
 	if(imgFlag) {
-//		imgMg.drawImage(context);
-		drawVideo()
+		if(inputMedia == "image") {
+			imgMg.drawImage(context);
+		} else if(inputMedia == "video") {
+			drawVideo();
+		}
 	}
 	// 作成中の曲線の描画
 	drawClosedCurve(context, cv);
@@ -66,8 +69,11 @@ function generateMeshFunc() {
 			context.setTransform(1, 0, 0, 1, 0, 0);
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
 			if(imgFlag) {
-//				imgMg.drawImage(context);
-				drawVideo()
+				if(inputMedia == "image") {
+					imgMg.drawImage(context);
+				} else if(inputMedia == "video") {
+					drawVideo();
+				}
 			}
 			drawMesh(context, mesh);
 		}
@@ -95,9 +101,11 @@ function generateMeshFunc() {
 	context.setTransform(1, 0, 0, 1, 0, 0);
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 	if(imgFlag) {
-//		imgMg.drawImage(context);
-		drawVideo()
-
+		if(inputMedia == "image") {
+			imgMg.drawImage(context);
+		} else if(inputMedia == "video") {
+			drawVideo();
+		}
 	}
 	drawMesh(context, mesh);
 
@@ -136,12 +144,17 @@ function fixFunc() {
 	// メッシュの描画
 	if(imgFlag) { 
 		if(mountFlag) {
-//			imgMg.drawImage(context);
-			drawVideo()
-
+			if(inputMedia == "image") {
+				imgMg.drawImage(context);
+			} else if(inputMedia == "video") {
+				drawVideo();
+			}
 		}
-//		drawFEMwithImage(context, physicsModel, imgMg);
-		drawFEMwithVideo(context, physicsModel, video, canvas.width(), canvas.height());
+		if(inputMedia == "image") {
+			drawFEMwithImage(context, physicsModel, imgMg);
+		} else if(inputMedia == "video") {
+			drawFEMwithVideo(context, physicsModel, video, canvas.width(), canvas.height());
+		}
 		drawFEMS(context, physicsModel);
 	}else{
 		drawFEMS(context, physicsModel);
@@ -240,12 +253,17 @@ function physicsFunc() {
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 	if(imgFlag){
 		if(mountFlag) {
-//			imgMg.drawImage(context);
-			drawVideo()
+			if(inputMedia == "image") {
+				imgMg.drawImage(context);
+			} else if(inputMedia == "video") {
+				drawVideo();
+			}
 		}
-//		drawFEMwithImage(context, physicsModel, imgMg);
-		drawFEMwithVideo(context, physicsModel, video, canvas.width(), canvas.height());
-
+		if(inputMedia == "image") {
+			drawFEMwithImage(context, physicsModel, imgMg);
+		} else if(inputMedia == "video") {
+			drawFEMwithVideo(context, physicsModel, video, canvas.width(), canvas.height());
+		}
 	} else {
 		drawFEM(context, physicsModel, selfCldFlag);
 	}

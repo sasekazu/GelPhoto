@@ -96,6 +96,15 @@ function initRadioEvent() {
 
 		}
 	});  
+	inputMedia = $('input[name="input-media"]:checked').val();
+	$('input[name="input-media"]:radio').change( function(){
+		inputMedia = $('input[name="input-media"]:checked').val();
+		if(inputMedia == "image") {
+			stopVideo();
+		} else if(inputMedia == "video") {
+			startVideo();
+		}
+	});
 }
 
 function initButtonEvent() {
@@ -107,7 +116,7 @@ function initButtonEvent() {
 		loopFunc = drawOutLineFunc;
 	});
 
-	// メッシュボタン
+	// スタートボタン
 	$("#meshButton").click(function () {
 
 		if(outline.closedCurves.length==0) {
@@ -146,6 +155,13 @@ function initButtonEvent() {
 		console.log("posNum "+physicsModel.pos.length);
 		console.log("triNum "+physicsModel.tri.length);
 		*/
+	});
+
+	// キャプチャ
+	$("#captureButton").click(function (){
+		stopVideo();
+		document.getElementsByName("input-media")[0].checked = true;
+		inputMedia = "image";
 	});
 
 	// 固定領域選択ボタン

@@ -23,6 +23,7 @@ $(document).ready(function () {
 	// キャンバスのコンテキスト取得
 	initCanvas();
 	initVideo();
+
 	$('#myVideo').hide();
 	// イベント処理の追加
 	initCheckBoxEvent();
@@ -47,7 +48,16 @@ $(document).ready(function () {
 	};
 
 
-	minlen =  Number($("#meshTx").val()),
+	minlen =  Number($("#meshTx").val());
+
+
+	// 動画の読み込み
+	if(inputMedia == "video") {
+		startVideo();
+	} else {
+		stopVideo();
+	}
+
 
 	/////////////////////////////////
 	// 画像の読み込み
@@ -91,23 +101,23 @@ $(document).ready(function () {
 		if(firstFlag) {
 //			jellyMesh(imgMg);
 
-		if(outline.closedCurves.length==0) {
-			cv=new ClosedCurve(minlen);
-			var dx = 0;
-			var dy = 0;
-			var dw = canvas.width();
-			var dh = canvas.height();
-			cv.addPoint([dx, dy]);
-			cv.addPoint([dx, dy+dh]);
-			cv.addPoint([dx+dw, dy+dh]);
-			cv.addPoint([dx+dw, dy]);
-			cv.addPoint([dx, dy]);
-			outline.addClosedLine(cv);
-		}
+			if(outline.closedCurves.length==0) {
+				cv=new ClosedCurve(minlen);
+				var dx = 0;
+				var dy = 0;
+				var dw = canvas.width();
+				var dh = canvas.height();
+				cv.addPoint([dx, dy]);
+				cv.addPoint([dx, dy+dh]);
+				cv.addPoint([dx+dw, dy+dh]);
+				cv.addPoint([dx+dw, dy]);
+				cv.addPoint([dx, dy]);
+				outline.addClosedLine(cv);
+			}
 
-		mesh=new DelaunayGen(outline, minlen);
+			mesh=new DelaunayGen(outline, minlen);
 
-		loopFunc = generateMeshFunc;
+			loopFunc = generateMeshFunc;
 
 
 			firstFlag = false;
