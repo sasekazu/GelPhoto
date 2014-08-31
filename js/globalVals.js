@@ -83,8 +83,30 @@ function initVideo() {
 
 function startVideo() {
 	$('#captureButton').show("slow");	// キャプチャボタンを表示
+
+	var constraints = {
+		video: true,
+		audio: true
+		/*
+		video: {
+			mandatory: {
+				maxWidth: 320,
+				maxHeight: 320,
+				maxFrameRate: 15
+			},
+			optional: [
+				{ facingMode: 'environment' }
+			]
+		},
+		audio: true
+		*/
+	};
+
+	
+
 	navigator.getUserMedia(
-		{video: true, audio: false},
+//		{video: true, audio: false},
+		constraints,
 	 
 	 function(localStream) { // for success case
 		stream = localStream;
