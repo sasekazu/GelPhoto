@@ -41,6 +41,8 @@ $(document).ready(function () {
 	resizeCanvas();	
 	*/
 
+	audioMg = new AudioManager();
+
 
 	/////////////////////////////////
 	// 画像の読み込み

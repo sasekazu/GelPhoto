@@ -198,17 +198,18 @@ function physicsFunc() {
 
 
 	// for vibration int the future
-	/*
 	var touchForce = physicsModel.getForce();
 	var forceIntensity = 0;
 	for(var i = 0; i < touchForce.length; i++) {
 		forceIntensity += numeric.norm2(touchForce[i]);
 	}
-	console.log(forceIntensity);
 	var fMax = 10000;
 	var vibVal = Math.round(forceIntensity/fMax);
-	vibratePulse(vibVal);
-	*/
+	if(vibVal==0){
+		vibVal = 0.01;
+	}
+	audioMg.start(vibVal);
+//	vibratePulse(vibVal);
 
 	var colFlagNow = physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
 

@@ -54,6 +54,9 @@ var imgMg;
 var state;
 var loopFunc;
 
+// 音声生成用変数
+var audioMg;
+
 function initCanvas() {
 	canvas = $("#mViewCanvas");
 	cvs = document.getElementById('mViewCanvas');
