@@ -25,7 +25,7 @@ function FEM(initpos, tri, param){
 	this.surToTri = [];		// 表面エッジ-対応する三角形要素リスト
 	this.triToSur = [];		// 三角形要素-対応する表面エッジリスト
 	this.surNode = [];		// 表面頂点リスト
-	this.sndToSur = [];	// 表面頂点に接続している表面エッジリスト
+	this.sndToSur = [];		// 表面頂点に接続している表面エッジリスト
 	this.sndToUnDupTri = [];	// 表面頂点に接続している三角形のうち表面エッジを有していないもののリスト
 	this.colNdFlag = numeric.rep([this.posNum], 0);	// for visualization
 	this.colTriFlag = numeric.rep([this.triNum],0);
