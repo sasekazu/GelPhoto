@@ -103,6 +103,5 @@ $(document).ready(function () {
 		loopFunc();	// loopFuncはcallbacks.jsで定義されている関数
 	    setTimeout(mainloop, 20);
 	}
-	
 		
 } );

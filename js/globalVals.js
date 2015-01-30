@@ -59,9 +59,10 @@ var dragFlagf=false;
 var imgMg;
 
 function initCanvas() {
-	canvas = $("#viewCanvas");
-	cvs = document.getElementById('viewCanvas');
+	canvas = $("#viewer");
+	cvs = document.getElementById('viewer');
 	context = canvas.get(0).getContext("2d");
 	canvasWidth = canvas.width();
 	canvasHeight = canvas.height();
+
 }

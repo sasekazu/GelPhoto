@@ -852,14 +852,17 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 		b=numeric.add(b, b3);
 	}
 	
-	this.vf=numeric.solve(A, b);
+	// direct solver
 	/*
+	this.vf=numeric.solve(A, b);
+	*/
+	// iterative solver
+	// 規模が大きい問題で有利
 	var dim=A.length;
 	var maxitr=2*dim;
 	var epsilon=1e-2;
 	var x0=numeric.rep([dim],0);
 	this.vf=conjugateGradient(A, b, this.vf, dim, maxitr, epsilon);
-	*/
 
 
 	for(var i=0; i<f; i++)
