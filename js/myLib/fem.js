@@ -15,8 +15,8 @@ function FEM(initpos, tri, param){
 	this.pos = numeric.clone(initpos);      // 節点現在位置
 	this.initpos = numeric.clone(initpos);  // 節点初期位置
 
-	this.pos.push([0,0]);	// ゴミを追加、こいつを固定点にすることでなぜか解が安定する
-	this.initpos.push([0,0]);
+	//this.pos.push([0,0]);	// ゴミを追加、こいつを固定点にすることでなぜか解が安定する
+	//this.initpos.push([0,0]);
 	this.posNum = this.pos.length;
 
 	this.tri = numeric.clone(tri); // 三角形要素の節点リスト
@@ -337,6 +337,8 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 		this.selectHoldNodes(mousePos);
 	}
 	
+	var nd;	// for文で使うテンポラリー変数
+
 	this.dlist = [];
 	this.flist = [];
 	this.ud = [];
@@ -347,9 +349,7 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 	this.f = numeric.linspace(0,0,2*this.posNum);
 
 	// 表面ノードを固定する
-	if(mountFlag)
-	{
-		var nd;
+	if(mountFlag){
 		for(var i = 0; i < this.surNode.length; ++i) {
 			nd = this.surNode[i];
 			u[2*nd]  = 0;
@@ -359,22 +359,20 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 	}
 
 	// 固定ノードの境界条件
-	{
-		var nd;
-		for(var i=0; i<this.fixNode.length; i++) {
-			nd=this.fixNode[i];
-			u[2*nd] = this.pos[nd][0]-this.initpos[nd][0];
-			u[2*nd+1]=this.pos[nd][1]-this.initpos[nd][1];
-			nodeToDF[nd]="d";
-		}
+	for(var i=0; i<this.fixNode.length; i++) {
+		nd=this.fixNode[i];
+		u[2*nd] = this.pos[nd][0]-this.initpos[nd][0];
+		u[2*nd+1]=this.pos[nd][1]-this.initpos[nd][1];
+		nodeToDF[nd]="d";
 	}
 	
 	// 上面のノードを固定
 	for(var i=0; i<this.pos.length; i++){
-		if(i==this.pos.length-1){
-			u[2*i] = 0;
-			u[2*i+1] = 0;
-			nodeToDF[i] = "d";
+		if(false){
+//		if(i==this.pos.length-1){
+//			u[2*i] = 0;
+//			u[2*i+1] = 0;
+//			nodeToDF[i] = "d";
 		}else if(nodeToDF[i]!="d"){
 			this.f[2*i] = 0;
 			if(gravityFlag){
@@ -384,7 +382,6 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 				this.f[2*i+0] = 0;
 				this.f[2*i+1] = 0;
 			}
-			
 			nodeToDF[i] = "f";
 		}
 	}
@@ -393,8 +390,10 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 	if(clickState == "Down"){
 		for(var cl=0; cl<mousePos.length; cl++){
 			for(var i=0; i<this.holdNode[cl].length; i++){
-				var nd = this.holdNode[cl][i];
-				if(nodeToDF[nd]=="d")continue;
+				nd = this.holdNode[cl][i];
+				if(nodeToDF[nd]=="d") {
+					continue;
+				}
 				u[2*nd]   = this.uClick[cl][2*nd]+mousePos[cl][0]-this.mousePosClick[cl][0];
 				u[2*nd+1] = this.uClick[cl][2*nd+1]+mousePos[cl][1]-this.mousePosClick[cl][1];
 				nodeToDF[nd] = "d";
@@ -421,10 +420,13 @@ FEM.prototype.setBoundary = function(clickState, mousePos, gravityFlag, selfColl
 	var ndNormalTmp, ndNmNorm;
 	for(var snd = 0; snd < this.surNode.length; ++snd) {
 		ndNormalTmp = [0,0];
-		for(var sedg = 0; sedg < this.sndToSur[snd].length; ++sedg) 
-			ndNormalTmp = numeric.add(ndNormalTmp, this.normal[this.sndToSur[snd][sedg]]);
+		for(var sedg=0; sedg<this.sndToSur[snd].length; ++sedg) {
+			ndNormalTmp=numeric.add(ndNormalTmp, this.normal[this.sndToSur[snd][sedg]]);
+		}
 		ndNmNorm = numeric.norm2(ndNormalTmp);
-		if(ndNmNorm===0)continue; // 法線ベクトルの長さがゼロになる場合は前回までの値を採用する
+		if(ndNmNorm===0) {
+			continue; // 法線ベクトルの長さがゼロになる場合は前回までの値を採用する
+		}
 		this.ndNormal[snd] = numeric.div(ndNormalTmp, ndNmNorm);
 	}
 
@@ -836,19 +838,21 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 
 	var Mright1 = numeric.dot(this.Mf,this.vf);
 	var Mright2 = numeric.dot(this.Kff,this.xf);
-	Mright2 = numeric.neg(Mright2);
-	var tmp = numeric.dot(this.Kfd,this.xd);
-	Mright2 = numeric.sub(Mright2,tmp);
+	Mright2=numeric.neg(Mright2);
+	if(d!=0) {
+		Mright2=numeric.sub(Mright2, numeric.dot(this.Kfd, this.xd));
+	}
 	Mright2 = numeric.sub(Mright2,this.fof);
 	Mright2 = numeric.add(Mright2,this.ff);
 	Mright2 = numeric.mul(Mright2,dt);
-	var Mright3 = numeric.mul(this.beta*dt+dt*dt, this.Kfd);
-	tmp = numeric.dot(Mright3, this.vd);
-	Mright3 = tmp;
-	var Mright = numeric.add(Mright1,Mright2);
-	Mright = numeric.add(Mright, Mright3);
+	var Mright=numeric.add(Mright1, Mright2);
+	if(d!=0) {
+		var Mright3=numeric.mul(this.beta*dt+dt*dt, this.Kfd);
+		Mright3=numeric.dot(Mright3, this.vd);
+		Mright=numeric.add(Mright, Mright3);
+	}
 	
-	this.vf = numeric.solve(Mleft,Mright);
+	this.vf=numeric.solve(Mleft, Mright);
 
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
