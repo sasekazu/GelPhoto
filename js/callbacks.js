@@ -227,7 +227,8 @@ function physicsFunc() {
 	}
 
 	// 描画処理
-	
+
+	var timeDraw0=new Date();
 	context.setTransform(1,0,0,1,0,0);
 	context.clearRect(0, 0, canvasWidth, canvasHeight);
 	if(imgFlag){
@@ -244,6 +245,7 @@ function physicsFunc() {
 
 	fpsMg.flush();
 	drawFPS(context, fpsMg.getFPS());
-
+	var timeDraw1=new Date();
+	//console.log("draw canvas  "+(timeDyn1-timeDyn0)+" [ms]");
 
 }

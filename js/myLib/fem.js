@@ -832,27 +832,35 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	this.makeMatrixKSW();
 	this.divideMatrices(dt);
 	
-	var Mleft1 = numeric.mul(this.Mf,(1+this.alpha));
-	var Mleft2 = numeric.mul(this.Kff,dt*(this.beta+dt));
-	var Mleft = numeric.add(Mleft1,Mleft2);
+	var A1 = numeric.mul(this.Mf,(1+this.alpha));
+	var A2 = numeric.mul(this.Kff,dt*(this.beta+dt));
+	var A = numeric.add(A1,A2);
 
-	var Mright1 = numeric.dot(this.Mf,this.vf);
-	var Mright2 = numeric.dot(this.Kff,this.xf);
-	Mright2=numeric.neg(Mright2);
+	var b1 = numeric.dot(this.Mf,this.vf);
+	var b2 = numeric.dot(this.Kff,this.xf);
+	b2=numeric.neg(b2);
 	if(d!=0) {
-		Mright2=numeric.sub(Mright2, numeric.dot(this.Kfd, this.xd));
+		b2=numeric.sub(b2, numeric.dot(this.Kfd, this.xd));
 	}
-	Mright2 = numeric.sub(Mright2,this.fof);
-	Mright2 = numeric.add(Mright2,this.ff);
-	Mright2 = numeric.mul(Mright2,dt);
-	var Mright=numeric.add(Mright1, Mright2);
+	b2 = numeric.sub(b2,this.fof);
+	b2 = numeric.add(b2,this.ff);
+	b2 = numeric.mul(b2,dt);
+	var b=numeric.add(b1, b2);
 	if(d!=0) {
-		var Mright3=numeric.mul(this.beta*dt+dt*dt, this.Kfd);
-		Mright3=numeric.dot(Mright3, this.vd);
-		Mright=numeric.add(Mright, Mright3);
+		var b3=numeric.mul(this.beta*dt+dt*dt, this.Kfd);
+		b3=numeric.dot(b3, this.vd);
+		b=numeric.add(b, b3);
 	}
 	
-	this.vf=numeric.solve(Mleft, Mright);
+	this.vf=numeric.solve(A, b);
+	/*
+	var dim=A.length;
+	var maxitr=2*dim;
+	var epsilon=1e-2;
+	var x0=numeric.rep([dim],0);
+	this.vf=conjugateGradient(A, b, this.vf, dim, maxitr, epsilon);
+	*/
+
 
 	for(var i=0; i<f; i++)
 		for(var j=0; j<2; j++)
