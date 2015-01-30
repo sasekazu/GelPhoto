@@ -250,7 +250,7 @@ function initButtonEvent() {
 	
 	
 	// mouseクリック時のイベントコールバック設定
-	$(window).mousedown( function(e){
+	canvas.mousedown( function(e){
 		touches = [];
 		touches[0] = e;
 		clickFunc(touches);
@@ -258,7 +258,7 @@ function initButtonEvent() {
 	
 	
 	// mouse移動時のイベントコールバック設定
-	$(window).mousemove( function(e){
+	canvas.mousemove( function(e){
 		//if(clickState == "Up")
 		//	return;
 		touches = [];
