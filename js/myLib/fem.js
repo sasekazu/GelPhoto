@@ -853,16 +853,15 @@ FEM.prototype.calcDynamicDeformation = function(dt){
 	}
 	
 	// direct solver
-	/*
-	this.vf=numeric.solve(A, b);
-	*/
-	// iterative solver
-	// 規模が大きい問題で有利
+	//this.vf=numeric.solve(A, b);
+
+	// iterative solver	// 規模が大きい問題で有利
 	var dim=A.length;
 	var maxitr=2*dim;
 	var epsilon=1e-2;
 	var x0=numeric.rep([dim],0);
-	this.vf=conjugateGradient(A, b, this.vf, dim, maxitr, epsilon);
+	//this.vf=conjugateGradient(A, b, this.vf, dim, maxitr, epsilon);	// 密行列
+	this.vf=conjugateGradientSparse(A, b, this.vf, dim, maxitr, epsilon);	// Aを疎行列に変換して行列ベクトル積を計算
 
 
 	for(var i=0; i<f; i++)
