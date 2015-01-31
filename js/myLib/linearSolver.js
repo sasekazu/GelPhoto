@@ -14,6 +14,9 @@ function conjugateGradient(A, b, x0, N, maxitr, epsilon) {
 	var rbuf;
 	var norm=numeric.dot(r, r);
 	var normBuf;
+	if(norm==0) {
+		return x;
+	}
 	while(1) {
 		y=numeric.dot(A, p);		// y = Ap
 		alpha=norm/numeric.dot(p, y);	// alpha = (r dot r)/(p dot y) 
@@ -21,7 +24,7 @@ function conjugateGradient(A, b, x0, N, maxitr, epsilon) {
 		rbuf=numeric.clone(r);
 		r=numeric.add(r, numeric.mul(-alpha, y));	// r = r - alpha y
 		normBuf=norm;
-		norm=numeric.dot(r,r);
+		norm=numeric.dot(r, r);
 		if(norm<epsilon*epsilon||count>=maxitr) {
 			break;
 		}
@@ -55,6 +58,9 @@ function conjugateGradientSparse(A, b, x0, N, maxitr, epsilon) {
 	var rbuf;
 	var norm=numeric.dot(r, r);
 	var normBuf;
+	if(norm==0) {
+		return x;
+	}
 	while(1) {
 		y=sparseAx(values, rowOffset, colIdx, p, N);	// y = Ap
 		alpha=norm/numeric.dot(p, y);	// alpha = (r dot r)/(p dot y) 
