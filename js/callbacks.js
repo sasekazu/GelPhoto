@@ -212,8 +212,10 @@ function physicsFunc() {
 	vibratePulse(vibVal);
 	*/
 
+	var timeCol0=new Date();
 	var colFlagNow = physicsModel.modifyPosCld(0, 0, canvasWidth, canvasHeight);
-
+	var timeCol1=new Date();
+	//console.log("collision "+(timeCol1-timeCol0)+" [ms]");
 	// 音声再生
 	// 壁にぶつかったとき（接触無から接触有に切り替わった時）に再生
 	if(audioFlag && colFlagNow && !colFlagBuf) {
