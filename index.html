@@ -30,16 +30,16 @@
 		</canvas>
 		<div id="discription">
 			<div>
-				<input id="resetButton" value="リセット" type="button" />
-				<input id="meshButton" value="スタート" type="button" />
+				<input id="resetButton" value="Draw Boundary" type="button" />
+				<input id="meshButton" value="Start Physics" type="button" />
 				<input id="uploadFile" name="image" type="file" /><br />
 			</div>
 			<div>
 				<h3>使い方</h3>
 				<p>
-					0. 「リセット」をクリック。<br />
-					1. マウスドラッグで変形させたい領域を閉曲線で指定する。<br />
-					2. 「スタート」をクリック。メッシュ生成が開始し、完了すると変形可能になる。<br />
+					0. 「Draw Boundary」をクリックして，領域設定モードへ。<br />
+					1. 変形させたい領域を，マウスドラッグで閉曲線を描くことで指定する。<br />
+					2. 「Start Physics」をクリック。指定した領域のメッシュ分割が実行され、完了すると変形可能になる。<br />
 				</p>
 			</div>
 			<div class="optionDiv">
@@ -52,7 +52,7 @@
 				<label><input id="fractureCheckBox" type="checkbox">破壊 : 応力に基づき要素を削除する</label><br />
 				<label><input id="imgCheckBox" type="checkbox" checked>画像表示</label><br />
 				<label><input id="dataCheckBox" type="checkbox" >データ可視化 : メッシュや各節点に働く力を描画する</label><br />
-				<label><input id="audioCheckBox" type="checkbox" checked>音声</label><br />
+				<label><input id="audioCheckBox" type="checkbox">音声</label><br />
 			</div>
 			<div class="optionDiv">
 				<input id="fixButton" value="固定領域選択" type="button" />
